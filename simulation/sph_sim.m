@@ -67,7 +67,7 @@ classdef sph_sim
 %           Return a column vector containing the w-velocities (velocity in
 %           the z-direction) of all SPH particles.
 % 
-% properties = obj.get_prop();
+% prop = obj.get_prop();
 %           Returns a structure containing all the properties of each SPH
 %           particle in the simulation.
 % 
@@ -457,22 +457,22 @@ classdef sph_sim
             w=obj.states(:,6);
         end
         
-        function properties = get_prop(obj)
-        % properties = obj.get_prop();
+        function prop = get_prop(obj)
+        % prop = obj.get_prop();
         % Returns a structure containing all the properties of each SPH
         % particle in the simulation. The properties include:
-        % properties.vmin               minimum velocity constraint
-        % properties.vmax               maximum velocity constraint
-        % properties.turning_radius     turning radius constraint
-        % properties.amax               maximum acceleration constraint
-        % properties.h                  kernel width
-        % properties.m                  mass
-        % properties.mu                 viscosity
-        % properties.K                  bulk modulus
-        % properties.group              group number
-        % properties.particle_type      particle type (veh, obs, or rd)
-        % properties.hij                h_ij matrix
-            properties = obj.prop;
+        % prop.vmin               minimum velocity constraint
+        % prop.vmax               maximum velocity constraint
+        % prop.turning_radius     turning radius constraint
+        % prop.amax               maximum acceleration constraint
+        % prop.h                  kernel width
+        % prop.m                  mass
+        % prop.mu                 viscosity
+        % prop.K                  bulk modulus
+        % prop.group              group number
+        % prop.particle_type      particle type (veh, obs, or rd)
+        % prop.hij                h_ij matrix
+            prop = obj.prop;
         end
         
         function param = get_param(obj)
