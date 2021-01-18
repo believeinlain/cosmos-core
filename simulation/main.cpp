@@ -2,8 +2,6 @@
 #include <numeric>
 #include <vector>
 #include "Eigen/Dense"
-#include "Eigen/Sparse"
-#include "unsupported/Eigen/CXX11/Tensor"
  
 using namespace Eigen;
 using namespace std;
@@ -39,7 +37,7 @@ MatrixXd index(const MatrixXd& m, const MatrixXi& I) {
 	return out;
 }
 
-MatrixXd assignd_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
+MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
 	for(int i = 0; i < I.size(); ++i) {
 		m(I(i)) = s;
 	}
@@ -149,7 +147,7 @@ int main()
 	MatrixXi fandab = find(andab);
 	cout << fandab << endl << endl;
 
-	cout << assignd_by_index(a3,fandab,9) << endl << endl;
+	cout << assign_d_by_index(a3,fandab,9) << endl << endl;
 
 	MatrixXd l6(1,6);
 	l6 << 5,6,7,8,9,0;
@@ -235,7 +233,7 @@ int main()
 	cout << mquot << endl << endl;
 	MatrixXd mquot_i = mquot.array().isInf().cast<double>();
 	cout << mquot_i << endl << endl;
-	assignd_by_index(mquot, find(mquot_i), 0);
+	assign_d_by_index(mquot, find(mquot_i), 0);
 	cout << mquot << endl << endl;
 
 
@@ -248,6 +246,12 @@ int main()
 	dm.diagonal() = VectorXd::Ones(5);
 	//MatrixXd dm_xd = dm;
 	cout << (MatrixXd)dm << endl << endl;
+	cout << MatrixXd::Ones(5,5)*5 - (MatrixXd)dm << endl << endl;
+
+	MatrixXd a1 = MatrixXd::Ones(3,3)*2;
+	MatrixXd a2 = MatrixXd::Ones(3,3)*4;
+	cout << a1.array()*a2.array() << endl << endl;
+
 	
 	
 

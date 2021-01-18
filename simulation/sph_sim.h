@@ -80,7 +80,7 @@ private:
 	//			{ 1 else
 	tuple<MatrixXd, MatrixXi> sph_compute_mask(const MatrixXd& dij);
 
-	void sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI);
+	MatrixXd sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI);
 
 	
 public:
