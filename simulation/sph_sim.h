@@ -16,7 +16,8 @@ using namespace std;
 class sph_sim {
 private:
 	// Loiter circle x,y,R
-	double lx, lR;
+	// lx is a struct
+	MatrixXd lR;
 
 	// Time
 	double t, t0;
@@ -84,6 +85,13 @@ private:
 
 	// Equation of state to compute the pressure
 	MatrixXd sph_compute_pressure(const MatrixXd& rho);
+
+	// Compute the viscous forces
+	Matrix3D sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
+								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI);
+	
+	// Compute the external force on vehicles to drive them toward a loiter circle
+	tuple<MatrixXd,MatrixXd,MatrixXd> external_force();
 
 	
 public:

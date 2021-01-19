@@ -478,7 +478,15 @@ void sph_sim::sph_rhs() {
 	P_term = P_term.array() * gradW.array();
 
 	// Viscosity
-	
+	Matrix3D Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
+
+	Matrix3D DvDt;
+	// NOTE: INCOMPLETE
+	// DvDt = -cat ...
+	// DvDt = ...
+
+	// External forcing
+
 }
 
 // Compute the distance, vector, and unit vector between particles i and j
@@ -564,6 +572,52 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
 	MatrixXd P = this->prop.K.array() * rho.array() * (rho0 - 1);
 	return P;
+}
+
+// Compute the viscous forces
+Matrix3D sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
+								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI) {
+	MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * this->prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
+	// NOTE: INCOMPLETE
+	// tmp(MaskI) = tmp(MaskI) ./ dij(MaskI);
+
+	Matrix3D vji( MatrixXd::Ones(this->npart,1) * this->states(all,3).transpose() - this->states(all,3) * MatrixXd::Ones(1,this->npart),
+				  MatrixXd::Ones(this->npart,1) * this->states(all,4).transpose() - this->states(all,4) * MatrixXd::Ones(1,this->npart),
+				  MatrixXd::Ones(this->npart,1) * this->states(all,5).transpose() - this->states(all,5) * MatrixXd::Ones(1,this->npart) );
+	
+	// No viscosity for reduced density particles or obstacles
+	vji.z0(all,seq(this->nveh,last)) = MatrixXd::Zero(vji.z0.rows(), vji.z0.cols()-this->nveh);	// NOTE: Check cols is correct on Zero matrix
+	vji.z1(all,seq(this->nveh,last)) = MatrixXd::Zero(vji.z1.rows(), vji.z1.cols()-this->nveh);
+	vji.z2(all,seq(this->nveh,last)) = MatrixXd::Zero(vji.z2.rows(), vji.z2.cols()-this->nveh);
+
+	// NOTE: INCOMPLETE
+	Matrix3D Pi;
+	//Pi = -cat(... squeeze ...)
+	return Pi;
+}
+
+// Compute the external force on vehicles to drive them toward a loiter circle
+tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
+	MatrixXd Fx = MatrixXd::Zero(this->states.rows(),1);
+	MatrixXd Fy = Fx;
+	MatrixXd Fz = Fx;
+	for(int i = 0; i < this->group_conf.num_loiter; ++i) {
+		int group_num = this->group_conf.loiter_group(i);
+		MatrixXi II = find( ( this->prop.group.array() == group_num )
+								.select(MatrixXd::Ones(this->prop.group.rows(),this->prop.group.cols()),
+										MatrixXd::Zero(this->prop.group.rows(),this->prop.group.cols())) );
+		
+		// Loiter circle
+		if(this->lR(i) > 0) {
+			// Width of the "flat spot" in the potential field, controls the width of the loiter circle track
+			double width = this->lR(i)/4;
+
+			// Shift the center of the loiter circle
+			//auto x = index(this->states,II)
+		}
+	}
+
+	return make_tuple(Fx,Fy,Fz);
 }
 
 // TODO

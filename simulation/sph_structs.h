@@ -126,7 +126,7 @@ struct group_conf_struct {
 	// Which group does each loiter circle belong to?
 	// Group number corresponds to array index for num_veh
 	// -1 means not active
-	// loiter_group
+	VectorXd loiter_group;
 
 };
 
