@@ -1043,7 +1043,7 @@ classdef sph_sim
             for i=1:obj.nrd
                 I1=obj.nveh+obj.nobs+i;
                 I2=find(obj.prop.group~=obj.prop.group(I1)); %group(i)~=group(j)
-                M(I2,I1)=0; 
+                M(I2,I1)=0;
             end
             
             I=find(M~=0); %indices of nonzeros
