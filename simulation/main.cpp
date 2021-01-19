@@ -252,6 +252,10 @@ int main()
 	MatrixXd a2 = MatrixXd::Ones(3,3)*4;
 	cout << a1.array()*a2.array() << endl << endl;
 
+	MatrixXd cv1 = MatrixXd::Ones(5,1)*3;
+	MatrixXd rv1 = MatrixXd::Ones(5,1)*2;
+	cout << (cv1.array()+1).matrix() * rv1.transpose() << endl << endl;
+
 	
 	
 

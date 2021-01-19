@@ -466,9 +466,19 @@ void sph_sim::sph_rhs() {
 									MatrixXd::Zero(tmp.rows(),tmp.cols())) );
 	
 	// Compute gradW
+	MatrixXd gradW = MatrixXd::Zero(this->npart, this->npart);
+	// NOTE: INCOMPLETE
+	//gradW(MaskI) = kernel_grad(dij(MaskI), this->prop.hij(MaskI), this->prop.kernel_type(MaskI));
+
+	// Compute pressure
+	MatrixXd P = sph_compute_pressure(rho);
+	// NOTE: Check this
+	MatrixXd P_term = (P.array() / rho.array().pow(2)).matrix() * this->prop.m.transpose() + MatrixXd::Ones(this->npart,1) * (P.array() * this->prop.m.array() / rho.array().pow(2)).transpose().matrix();
+	// Magnitude of the pressure force
+	P_term = P_term.array() * gradW.array();
+
+	// Viscosity
 	
-
-
 }
 
 // Compute the distance, vector, and unit vector between particles i and j
@@ -548,6 +558,12 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 	//assign_d_by_index(rho, I, this->prop.m(I)*kernel(0,this->prop.h(I),2));
 	
 	return rho;
+}
+
+// Equation of state to compute the pressure
+MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
+	MatrixXd P = this->prop.K.array() * rho.array() * (rho0 - 1);
+	return P;
 }
 
 // TODO

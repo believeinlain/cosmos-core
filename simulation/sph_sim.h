@@ -82,6 +82,9 @@ private:
 
 	MatrixXd sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI);
 
+	// Equation of state to compute the pressure
+	MatrixXd sph_compute_pressure(const MatrixXd& rho);
+
 	
 public:
 	// Class constructor
