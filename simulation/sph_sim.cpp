@@ -203,10 +203,14 @@ void append_down(MatrixXd& m, const MatrixXd& app) {
 
 
 
+// sph_sim constructor
+sph_sim::sph_sim() {
+	param_struct param;
+}
 sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) {
-	sph_sim::param = param;
-	sph_sim::group_conf = group_conf;
-	sph_sim::t0 = t0;
+	this->param = param;
+	this->group_conf = group_conf;
+	this->t0 = t0;
 
 	// Setup SPH properties
 	init_prop();
