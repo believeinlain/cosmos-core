@@ -93,6 +93,10 @@ private:
 	// Compute the external force on vehicles to drive them toward a loiter circle
 	tuple<MatrixXd,MatrixXd,MatrixXd> external_force();
 
+	// Compute the rate of change of SPH.states, i.e., the velocity
+	// and accelerations, while applying vehicle constraints
+	MatrixXd sph_compute_rates(const Matrix3D& DvDt);
+
 	
 public:
 	// Class constructor
