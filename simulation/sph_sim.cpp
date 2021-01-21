@@ -15,7 +15,44 @@ MatrixXd kernel(MatrixXd r, MatrixXd h, MatrixXd type) {
 	//W = W + (type==1)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0),4.0-s+1.0)*(s<2.0);
 	return W;
 }
-// Evaluates the smoothing kernel function for the SPH equations
+
+/// Evaluates the smoothing kernel function for the SPH equations
+/**
+The equations:
+
+<center><table border="0"><tr>
+<td style="text-align:left; padding-right:15mm">
+\f$
+\begin{align*}
+W_1(\vec{r_{i j}},h_{i j})=\frac{C_1}{h_{i j}^d}\left\{\begin{matrix}
+	4-6s^2+3s^3	& if & 0 \leq  s \leq 1 \\
+	(2-s)^3		& if & 1 \leq s \leq 2 \\
+	0			& if & \hfill s > 2
+\end{matrix}\right.
+\end{align*}
+\f$
+</td><td>
+and
+</td><td style="text-align:right; padding-left:15mm">
+\f$
+\begin{align*}
+W_2(\vec{r_{i j}},h_{i j})=\frac{C_2}{h_{i j}^d}\left\{\begin{matrix}
+	s^2-4s+4	& if & s \leq 2 \\
+	0			& if & s > 2
+\end{matrix}\right.
+\end{align*}
+\f$
+</td>
+</tr></table></center>
+
+are the two kernel functions used in this simulation, for type == 1 and type == 2, respectively.
+
+@param	r		relative distance between particles i and j
+@param	h		smoothing width, \f$ max(h_i,h_j) \f$ if they differ.
+@param	type	int type value for picking the kernel function to use. Type 1 for repelling forces and type 2 for attracting forces.
+
+@return W		double value result of the kernel function
+*/
 double kernel(double r, double h, int type) {
 	double s = r/h;
 	
@@ -27,7 +64,7 @@ double kernel(double r, double h, int type) {
 
 	// Quadratic kernel, used for all other (type 2) interactions
 	//W = W + ( type==2 ).*15./(16*pi*h.^3)     .*(s.^2/4-s+1)         .*(s<2);
-	W = W + (type==1)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0),4.0-s+1.0)*(s<2.0);
+	W = W + (type==2)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0),4.0-s+1.0)*(s <= 2.0);
 	return W;
 }
 
