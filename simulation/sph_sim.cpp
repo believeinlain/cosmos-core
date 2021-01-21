@@ -489,6 +489,16 @@ void sph_sim::sph_rhs() {
 	MatrixXd Fx, Fy, Fz;
 	tie(Fx,Fy,Fz) = external_force();
 
+	// Sum of forces
+	// DvDt = ...
+
+	MatrixXd rhs = sph_compute_rates(DvDt);
+
+	if(this->param.ndim == 2) {
+		rhs(all,2).array() = 0;
+		rhs(all,5).array() = 0;
+	}
+
 }
 
 // Compute the distance, vector, and unit vector between particles i and j
@@ -620,6 +630,14 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 	}
 
 	return make_tuple(Fx,Fy,Fz);
+}
+
+// Compute the rate of change of SPH.states, i.e., the velocity
+// and accelerations, while applying vehicle constraints
+MatrixXd sph_sim::sph_compute_rates(const Matrix3D& DvDt) {
+	MatrixXd rates;
+
+	return rates;
 }
 
 // TODO
