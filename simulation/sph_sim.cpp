@@ -49,7 +49,7 @@ are the two kernel functions used in this simulation, for type == 1 and type == 
 
 @param	r		relative distance between particles i and j
 @param	h		smoothing width, \f$ max(h_i,h_j) \f$ if they differ.
-@param	type	int type value for picking the kernel function to use. Type 1 for repelling forces and type 2 for attracting forces.
+@param	type	int type value for picking the kernel function to use. Type 1 for attracting forces and type 2 for repelling vehicle-vehicle interactions.
 
 @return W		double value result of the kernel function
 */
@@ -62,27 +62,64 @@ double kernel(double r, double h, int type) {
 	//W = W + (type==1).*( ( 1 - 3/2*s.^2        + 3/4*s.^3 )          .*( s<1 ) + ( 1/4*(2-s).^3 )           .*( (s >= 1)   .*(s <= 2) ) )   ./(pi*h.^3);
 	W = W + (type==1)*( ( 1.0-3.0/2.0*pow(s,2.0) + 3.0/4.0*pow(s,3.0) ) * (s<1) + ( 1.0/4.0*pow((2.0-s),3.0) ) * ( (s >= 1.0) * (s <= 2.0) ) ) / M_PI*pow(h,3.0);
 
-	// Quadratic kernel, used for all other (type 2) interactions
+	// Second-order spline kernel for vehicle-vehicle interactions. Generates repelling forces if two particles are too close. 
 	//W = W + ( type==2 ).*15./(16*pi*h.^3)     .*(s.^2/4-s+1)         .*(s<2);
-	W = W + (type==2)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0),4.0-s+1.0)*(s <= 2.0);
+	W = W + (type==2)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0)/4.0-s+1.0)*(s <= 2.0);
 	return W;
 }
 
-// Evaluates the derivatie of the smoothing kernel function for the SPH equations.
-// Note that this returns a scalar value which is the magnitude of the gradient W.
-// The direction (if needed) must be computed separately.
+
+/// Evaluates the derivative of the smoothing kernel function
+/**
+The gradients of the two kernel functions are:
+
+<center><table border="0"><tr>
+<td style="text-align:left; padding-right:15mm">
+\f$
+\begin{align*}
+\frac{d W_1}{d r}(\vec{r_{i j}},h_{i j})=\frac{C_1}{h_{i j}^{d+1}}\left\{\begin{matrix}
+	-12s+9s^2	& if & 0 \leq  s \leq 1 \\
+	-3(2-s)^2	& if & 1 \leq s \leq 2 \\
+	0			& if & \hfill s > 2
+\end{matrix}\right.
+\end{align*}
+\f$
+</td><td>
+and
+</td><td style="text-align:right; padding-left:15mm">
+\f$
+\begin{align*}
+\frac{d W_2}{d r}(\vec{r_{i j}},h_{i j})=\frac{C_2}{h_{i j}^{d+1}}\left\{\begin{matrix}
+	2s-4	& if & s \leq 2 \\
+	0		& if & s > 2
+\end{matrix}\right.
+\end{align*}
+\f$
+</td>
+</tr></table></center>
+
+for type == 1 and type == 2, respectively.
+
+Note that this returns a scalar value which is the magnitude of the gradient W.
+
+The direction (if needed) must be computed separately.
+
+@param	r		relative distance between particles i and j
+@param	h		smoothing width, \f$ max(h_i,h_j) \f$ if they differ.
+@param	type	int type value for picking the kernel function to use. Type 1 for attracting forces and type 2 for repelling vehicle-vehicle interactions.
+
+@return W		double value result of the kernel function
+*/
 double kernel_grad(double r, double h, int type) {
 	double s = r/h;
 
 	double dWdr = 0;
 
 	// Cubic spline kernel, used for vehicle-reduced density (type 1) particle interactions.
-	//dWdr = dWdr + ( type==1 ).*( ( -3*s + 9/4*s.^2 )     .*(s<1) + ( -3/4*(2-s).^2 )           .*( (s >= 1).*(s <= 2) ) )./(pi*h.^4);
 	dWdr = dWdr + (type==1)*( ( -3.0*s + 9.0/4.0*pow(s,2.0))*(s<1) + ( -3.0/4.0*pow((2.0-s),2.0) )*( (s>=1.0)*(s<=2.0)  ) )/(M_PI*pow(h,4.0));
 
 	// Quadratic kernel, used for all other (type 2) interactions
-	//dWdr = dWdr + ( type==2 ).*15./(16*pi*h.^4)     .*(s/2-1)   .*(s<2);
-	dWdr = dWdr + (type==2)*15.0/(16.0*M_PI*pow(h,4.0))*(s/2.0-1.0)*(s<2.0);
+	dWdr = dWdr + (type==2)*15.0/(16.0*M_PI*pow(h,4.0))*(s/2.0-1.0)*(s<=2.0);
 
 	return dWdr;
 }
