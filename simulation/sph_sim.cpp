@@ -486,6 +486,8 @@ void sph_sim::sph_rhs() {
 	// DvDt = ...
 
 	// External forcing
+	MatrixXd Fx, Fy, Fz;
+	tie(Fx,Fy,Fz) = external_force();
 
 }
 
