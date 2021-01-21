@@ -144,7 +144,7 @@ int main()
 	MatrixXd andab = (a3.array() != 0 && b3.array() != 0).select(MatrixXd::Ones(3,3),MatrixXd::Zero(3,3));
 	cout << "andab" << endl << andab << endl << endl;
 
-	MatrixXi fandab = find(andab);
+	ArrayXi fandab = find(andab);
 	cout << fandab << endl << endl;
 
 	cout << assign_d_by_index(a3,fandab,9) << endl << endl;
@@ -256,6 +256,13 @@ int main()
 	MatrixXd rv1 = MatrixXd::Ones(5,1)*2;
 	cout << (cv1.array()+1).matrix() * rv1.transpose() << endl << endl;
 
+	/*MatrixXd mall(5,5);
+	mall << 1,2,3,4,5, 6,7,8,9,10, 11,12,13,14,15, 16,17,18,19,20, 21,22,23,24,25;
+	cout << mall << endl << endl;
+	MatrixXi mIndx(3,1); mIndx << 0,2,4;
+	mall(mIndx.col(0),0).array() = 0;
+	cout << mall << endl << endl;// << mIndx.matrix() << endl << endl << mIndx.matrix().transpose() << endl;
+	*/
 	
 	
 
