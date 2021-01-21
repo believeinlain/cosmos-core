@@ -13,6 +13,16 @@ using namespace Eigen;
 using namespace std;
 
 
+double kernel(double r, double h, int type);
+double kernel_grad(double r, double h, int type);
+MatrixXi find(const MatrixXd& A);
+MatrixXd index(const MatrixXd& m, const MatrixXi& I);
+MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s);
+MatrixXd vseq(int val0, int val_last);
+MatrixXi sort(const MatrixXd& c);
+void append_right(MatrixXd& m, const MatrixXd& app);
+void append_down(MatrixXd& m, const MatrixXd& app);
+
 class sph_sim {
 private:
 	// Loiter circle x,y,R
@@ -103,6 +113,7 @@ public:
 	// param		structure containing the SPH parameters
 	// group_conf	structure containing the SPH group configuration
 	// t0			option, if t0 is not given it is set to 0
+	sph_sim();
 	sph_sim(param_struct param, group_conf_struct group_conf, double t0 = 0);
 
 };
