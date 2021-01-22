@@ -59,12 +59,10 @@ double kernel(double r, double h, int type) {
 	double W = 0;
 
 	// Cubic spline kernel, used for vehicle-reduced density (type 1) particle interactions.
-	//W = W + (type==1).*( ( 1 - 3/2*s.^2        + 3/4*s.^3 )          .*( s<1 ) + ( 1/4*(2-s).^3 )           .*( (s >= 1)   .*(s <= 2) ) )   ./(pi*h.^3);
 	W = W + (type==1)*( ( 1.0-3.0/2.0*pow(s,2.0) + 3.0/4.0*pow(s,3.0) ) * (s<=1) + ( 1.0/4.0*pow((2.0-s),3.0) ) * ( (s > 1.0) * (s <= 2.0) ) ) / (M_PI*pow(h,3.0));
 
 	// Second-order spline kernel for vehicle-vehicle interactions. Generates repelling forces if two particles are too close. 
-	//W = W + ( type==2 ).*15./(16*pi*h.^3)     .*(s.^2/4-s+1)         .*(s<2);
-	//W = W + (type==2)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0)/4.0-s+1.0)*(s <= 2.0);
+	W = W + (type==2)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0)/4.0-s+1.0)*(s <= 2.0);
 	return W;
 }
 
