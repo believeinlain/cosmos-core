@@ -165,15 +165,10 @@ MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
 }
 
 // Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ... }), inclusive
-MatrixXd vseq(int val0, int val_last) {
-	if(val_last < val0) {
-		throw "valn must be greater than val0!";
-	}
-	MatrixXd out(1,val_last-val0+1);
-	for(int i = val0; i <= val_last; ++i) {
-		out(i) = i;
-	}
-	return out;
+MatrixXd vseq(int val0, int valn) {
+	RowVectorXd rvxd;
+	rvxd.setLinSpaced(valn-val0+1, val0, valn);
+	return rvxd.matrix();
 }
 
 // Return sorted indices of c, in ascending order
@@ -188,15 +183,19 @@ MatrixXi sort(const MatrixXd& c) {
 }
 
 // Append another matrix app to matrix m, right or down
-void append_right(MatrixXd& m, const MatrixXd& app) {
+MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.cols();
-	m.conservativeResize(m.rows(),off + app.cols());
-	m(seq(0,last),seq(off,last)) = app;
+	MatrixXd out(m.rows(), off + app.cols());
+	out.topLeftCorner(m.rows(), m.cols()) = m;
+	out(seq(0,last),seq(off,last)) = app;
+	return out;
 }
-void append_down(MatrixXd& m, const MatrixXd& app) {
+MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.rows();
-	m.conservativeResize(off + app.rows(), m.cols());
-	m(seq(off,last),seq(0,last)) = app;
+	MatrixXd out(off + app.rows(), m.cols());
+	out.topLeftCorner(m.rows(), m.cols()) = m;
+	out(seq(off,last),seq(0,last)) = app;
+	return out;
 }
 
 
@@ -345,14 +344,14 @@ void sph_sim::compute_hij() { // NOTE: Check the this->prop.h(seq(I1,I2),0), sam
 	// Obstacles: hij=h_obs
 	int I1 = this->nveh; // NOTE: +1 for 1 based indexing? Maybe not necessary. Consider I2 as well
 	int I2 = this->nveh + this->group_conf.num_obs - 1;
-	append_down(this->prop.hij, this->prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,this->prop.hij.cols()));
-	append_right(this->prop.hij, MatrixXd::Ones(this->prop.hij.rows(),1) * this->prop.h(seq(I1,I2),0).transpose());
+	this->prop.hij = append_down(this->prop.hij, this->prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,this->prop.hij.cols()));
+	this->prop.hij = append_right(this->prop.hij, MatrixXd::Ones(this->prop.hij.rows(),1) * this->prop.h(seq(I1,I2),0).transpose());
 
 	// Reduced density particles: hij=h_rd
 	I1 = this->nveh + this->group_conf.num_obs;
 	I2 = this->nveh + this->group_conf.num_obs + this->group_conf.num_rd - 1;
-	append_down(this->prop.hij, this->prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,this->prop.hij.cols()));
-	append_right(this->prop.hij, MatrixXd::Ones(this->prop.hij.rows(),1) * this->prop.h(seq(I1,I2),0).transpose());
+	this->prop.hij = append_down(this->prop.hij, this->prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,this->prop.hij.cols()));
+	this->prop.hij = append_right(this->prop.hij, MatrixXd::Ones(this->prop.hij.rows(),1) * this->prop.h(seq(I1,I2),0).transpose());
 }
 
 // Create a matrix kernel_type that tells which kernel to use.
@@ -391,11 +390,11 @@ void sph_sim::init_states() {
 	for(size_t i = 0; i < this->group_conf.num_obs-1; ++i) {
 		MatrixXd app(1,6);
 		app << this->group_conf.obs_init.x(i), this->group_conf.obs_init.y(i), this->group_conf.obs_init.z(i), 0, 0, 0;	// x,y,z, u,v,w
-		append_down(this->states, app);
+		this->states = append_down(this->states, app);
 	}
 
 	// Reduced density particles
-	append_down(this->states, MatrixXd::Zero(this->group_conf.num_rd,6));
+	this->states = append_down(this->states, MatrixXd::Zero(this->group_conf.num_rd,6));
 
 }
 
@@ -421,7 +420,7 @@ void sph_sim::init2d() {
 				   r(1,all).array()+v2(1)-v1(1),
 				   r(2,all).array()+v2(2)-v1(2);
 		}
-		append_right(r, app);
+		r = append_right(r, app);
 	}
 
 	// Randomize slightly to avoid singularities
@@ -554,7 +553,7 @@ void sph_sim::sph_rhs() {
 	P_term = P_term.array() * gradW.array();
 
 	// Viscosity
-	Matrix3D Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
+	MatrixXd Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
 
 	Matrix3D DvDt;
 	// NOTE: INCOMPLETE
@@ -615,7 +614,7 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	
 	// Obstacle or reduced density particle
 	// NOTE: check that I'm understanding this correctly as an append down
-	append_down(M, MatrixXd::Zero(this->npart,dij.cols()));			// M(i,:) = 0
+	M = append_down(M, MatrixXd::Zero(this->npart,dij.cols()));			// M(i,:) = 0
 	int n = this->nobs + this->nrd;
 	DiagonalMatrix<double, Dynamic> dm(this->npart); // NOTE: check size of this, am I understanding this correctly
 	dm.diagonal() = VectorXd::Ones(this->npart);
@@ -652,17 +651,19 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 		else {
 			return K(i);
 		}
-	});*/
-	/*auto temp = MaskI.unaryExpr([&](int x) {
+	});*/ //NOTE: Wondering if just keeping the 2D array like without using find() isn't a better way of doing things
+	auto temp = MaskI.unaryExpr([&](int x) {
 		K(x) = kernel(dij(x), this->prop.hij(x), this->prop.kernel_type(x));
 		return x;
-	});*/
+	});
 	MatrixXd rho = ( mj.array()*K.array() ).rowwise().sum();
 
 	// Reduced density particles have fixed density that does not consider the proximity of other particles
-	MatrixXd I = vseq(this->nveh+this->nobs, this->npart-1);
-	// NOTE: INCOMPLETE
-	//assign_d_by_index(rho, I, this->prop.m(I)*kernel(0,this->prop.h(I),2));
+	MatrixXi I = vseq(this->nveh+this->nobs, this->npart-1).cast<int>();
+	I = I.unaryExpr([&](int x) {
+		rho(x) = this->prop.m(x) * kernel(0, this->prop.h(x), 2);
+		return x;
+	});
 	
 	return rho;
 }
@@ -674,11 +675,13 @@ MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
 }
 
 // Compute the viscous forces
-Matrix3D sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
+MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
 								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * this->prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
-	// NOTE: INCOMPLETE
-	// tmp(MaskI) = tmp(MaskI) ./ dij(MaskI);
+	auto temp = MaskI.unaryExpr([&](int x) {
+		tmp(x) = tmp(x)/dij(x);
+		return x;
+	});
 
 	Matrix3D vji( MatrixXd::Ones(this->npart,1) * this->states(all,3).transpose() - this->states(all,3) * MatrixXd::Ones(1,this->npart),
 				  MatrixXd::Ones(this->npart,1) * this->states(all,4).transpose() - this->states(all,4) * MatrixXd::Ones(1,this->npart),
@@ -689,9 +692,10 @@ Matrix3D sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const
 	vji.z1(all,seq(this->nveh,last)) = MatrixXd::Zero(vji.z1.rows(), vji.z1.cols()-this->nveh);
 	vji.z2(all,seq(this->nveh,last)) = MatrixXd::Zero(vji.z2.rows(), vji.z2.cols()-this->nveh);
 
-	// NOTE: INCOMPLETE
-	Matrix3D Pi;
-	//Pi = -cat(... squeeze ...)
+	MatrixXd Pi(vji.z0.rows(), 3);
+	Pi <<	(tmp.array() * vji.z0.array() * -1).rowwise().sum(),
+			(tmp.array() * vji.z1.array() * -1).rowwise().sum(),
+			(tmp.array() * vji.z2.array() * -1).rowwise().sum();
 	return Pi;
 }
 
@@ -729,3 +733,4 @@ MatrixXd sph_sim::sph_compute_rates(const Matrix3D& DvDt) {
 
 // TODO
 // INCOMPLETE, MODIFIED
+// contemplate the type of vseq. int or double? eh...
