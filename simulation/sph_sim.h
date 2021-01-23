@@ -20,8 +20,8 @@ MatrixXd index(const MatrixXd& m, const MatrixXi& I);
 MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s);
 MatrixXd vseq(int val0, int val_last);
 MatrixXi sort(const MatrixXd& c);
-void append_right(MatrixXd& m, const MatrixXd& app);
-void append_down(MatrixXd& m, const MatrixXd& app);
+MatrixXd append_right(MatrixXd& m, const MatrixXd& app);
+MatrixXd append_down(MatrixXd& m, const MatrixXd& app);
 
 class sph_sim {
 private:
@@ -97,7 +97,7 @@ private:
 	MatrixXd sph_compute_pressure(const MatrixXd& rho);
 
 	// Compute the viscous forces
-	Matrix3D sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
+	MatrixXd sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
 								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI);
 	
 	// Compute the external force on vehicles to drive them toward a loiter circle

@@ -46,14 +46,9 @@ MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
 
 // Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ... }), inclusive
 MatrixXd vseq(int val0, int valn) {
-	if(valn < val0) {
-		throw "valn must be greater than val0!";
-	}
-	MatrixXd out(1,valn-val0+1);
-	for(int i = val0; i <= valn; ++i) {
-		out(i) = i;
-	}
-	return out;
+	RowVectorXd rvxd;
+	rvxd.setLinSpaced(valn-val0+1, val0, valn);
+	return rvxd.matrix();
 }
 
 /*void sortv(const MatrixXd& m) {
@@ -75,16 +70,20 @@ MatrixXi sort(const MatrixXd& c) {
           { return c(i) < c(j);});
 	return idxs;
 }
-void append_right(MatrixXd& m, const MatrixXd& app) {
+MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.cols();
-	m.conservativeResize(m.rows(),off + app.cols());
-	m(seq(0,last),seq(off,last)) = app;
+	MatrixXd out(m.rows(), off + app.cols());
+	out.topLeftCorner(m.rows(), m.cols()) = m;
+	out(seq(0,last),seq(off,last)) = app;
+	return out;
 }
 
-void append_down(MatrixXd& m, const MatrixXd& app) {
+MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.rows();
-	m.conservativeResize(off + app.rows(), m.cols());
-	m(seq(off,last),seq(0,last)) = app;
+	MatrixXd out(off + app.rows(), m.cols());
+	out.topLeftCorner(m.rows(), m.cols()) = m;
+	out(seq(off,last),seq(0,last)) = app;
+	return out;
 }
 
 double myfunction (double a, double b) {
@@ -128,11 +127,11 @@ int main()
 	matA << 1, 2, 3, 4;
 	cout << matA << endl << endl;
 	// append right
-	append_right(matA,MatrixXd::Ones(matA.rows(),2));
+	matA = append_right(matA,MatrixXd::Ones(matA.rows(),2));
 	cout << matA << endl << endl;
 
 	// append down
-	append_down(matA,MatrixXd::Ones(2,matA.cols()).array() + 3);
+	matA = append_down(matA,MatrixXd::Ones(2,matA.cols()).array() + 3);
 	cout << matA << endl << endl;
 
 	/*a3 << 0,2,3,
@@ -158,12 +157,13 @@ int main()
 	r << vseq(0,N-1), MatrixXd::Zero(2,N);
 	cout << r << endl << endl;
 
+	cout << "madd" << endl;
 	MatrixXd ma = MatrixXd::Ones(2,2);
 	MatrixXd madd = ma.array() + 3;
 	cout << madd << endl << endl;
 	MatrixXd app(2,1);
 	app << 5,9;
-	append_right(madd,app);
+	madd = append_right(madd,app);
 	cout << madd << endl << endl;
 	MatrixXd madd_upsidedown(madd.rows(),madd.cols());
 	madd_upsidedown << madd(1,all), madd(0,all).array()+2;
@@ -273,7 +273,7 @@ int main()
 		}
 	});
 	cout << mbasemasked << endl << endl;
-	// variation 2: using find()
+	// variation 2: using find(), i.e., a vector of indices to access/modify
 	MatrixXi mmf = find(mask);
 	MatrixXd mbase2 = mbase;
 	mmf = mmf.unaryExpr([&](int x) {
@@ -282,6 +282,14 @@ int main()
 	});
 	cout << mbase2 << endl << endl;
 	
+	MatrixXd mlin(1,9);
+	RowVectorXd vlin;
+	vlin.setLinSpaced(9,1,9);
+	mlin << vlin.matrix();
+	cout << mlin << endl << endl;
+	MatrixXd mlinQ(3,9);
+	mlinQ << mlin , mlin , mlin.array()-1;
+	cout << mlinQ;
 	
 
 
