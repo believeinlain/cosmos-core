@@ -114,11 +114,11 @@ int main()
 	b3 << 1,1,9,
 		  4,5,5,
 		  7,8,9;
-	MatrixXd a53 = (b3.array() == 5).select(MatrixXd::Ones(3,3),MatrixXd::Zero(3,3));
+	MatrixXd a53 = (b3.array() == 5).cast<double>();
 	cout << a53 << endl << endl;
-	MatrixXd ab3 = (a3.array() == b3.array()).select(MatrixXd::Ones(3,3),MatrixXd::Zero(3,3));
+	MatrixXd ab3 = (a3.array() == b3.array()).cast<double>();
 	cout << ab3 << endl << endl;
-	MatrixXd a54ab3 = (a53.array() != 0 && ab3.array() != 0).select(MatrixXd::Ones(3,3),MatrixXd::Zero(3,3));
+	MatrixXd a54ab3 = (a53.array() != 0 && ab3.array() != 0).cast<double>();
 	cout << a54ab3 << endl << endl;
 	MatrixXd maxa3b3 = ( a3.array() > b3.array() ).select(a3,b3);
 	cout << maxa3b3 << endl << endl;
@@ -140,7 +140,7 @@ int main()
 	b3 << 1,2,3,
 		  4,5,6,
 		  7,8,9;*/
-	MatrixXd andab = (a3.array() != 0 && b3.array() != 0).select(MatrixXd::Ones(3,3),MatrixXd::Zero(3,3));
+	MatrixXd andab = (a3.array() != 0 && b3.array() != 0).cast<double>();
 	cout << "andab" << endl << andab << endl << endl;
 
 	ArrayXi fandab = find(andab);
@@ -260,7 +260,7 @@ int main()
 	mbase << 1,2,3,4,5, 6,7,8,9,10, 11,12,13,14,15, 16,17,18,19,20, 21,22,23,24,25;
 	cout << mbase << endl << endl;
 	// variation 1: using full 2D array as mask
-	MatrixXd mask = (mbase.array() > 12).select(MatrixXd::Ones(mbase.rows(),mbase.cols()), MatrixXd::Zero(mbase.rows(),mbase.cols()));
+	MatrixXd mask = (mbase.array() > 12).cast<double>();
 	cout << mask << endl << endl; // note: didn't use find!
 	MatrixXd mbasemasked = MatrixXd::NullaryExpr(mask.rows(), mask.cols(), [&](Index i) { 
 		// apply function if Mask is 1
