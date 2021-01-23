@@ -87,8 +87,8 @@ void append_down(MatrixXd& m, const MatrixXd& app) {
 	m(seq(off,last),seq(0,last)) = app;
 }
 
-bool myfunction (int i,int j) {
-	return (i<j);
+double myfunction (double a, double b) {
+	return a + b;
 }
 int main()
 {
@@ -256,13 +256,31 @@ int main()
 	MatrixXd rv1 = MatrixXd::Ones(5,1)*2;
 	cout << (cv1.array()+1).matrix() * rv1.transpose() << endl << endl;
 
-	/*MatrixXd mall(5,5);
-	mall << 1,2,3,4,5, 6,7,8,9,10, 11,12,13,14,15, 16,17,18,19,20, 21,22,23,24,25;
-	cout << mall << endl << endl;
-	MatrixXi mIndx(3,1); mIndx << 0,2,4;
-	mall(mIndx.col(0),0).array() = 0;
-	cout << mall << endl << endl;// << mIndx.matrix() << endl << endl << mIndx.matrix().transpose() << endl;
-	*/
+	MatrixXd mbase(5,5);
+	mbase << 1,2,3,4,5, 6,7,8,9,10, 11,12,13,14,15, 16,17,18,19,20, 21,22,23,24,25;
+	cout << mbase << endl << endl;
+	// variation 1: using full 2D array as mask
+	MatrixXd mask = (mbase.array() > 12).select(MatrixXd::Ones(mbase.rows(),mbase.cols()), MatrixXd::Zero(mbase.rows(),mbase.cols()));
+	cout << mask << endl << endl; // note: didn't use find!
+	MatrixXd mbasemasked = MatrixXd::NullaryExpr(mask.rows(), mask.cols(), [&](Index i) { 
+		// apply function if Mask is 1
+		if(mask(i)) {
+			return myfunction(mbase(i), 1);
+		}
+		// Mask is 0
+		else {
+			return mbase(i);
+		}
+	});
+	cout << mbasemasked << endl << endl;
+	// variation 2: using find()
+	MatrixXi mmf = find(mask);
+	MatrixXd mbase2 = mbase;
+	mmf = mmf.unaryExpr([&](int x) {
+		mbase2(x) = myfunction(mbase2(x), 1);
+		return x;
+	});
+	cout << mbase2 << endl << endl;
 	
 	
 

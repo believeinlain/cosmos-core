@@ -536,7 +536,7 @@ void sph_sim::sph_rhs() {
 	// Remove diagonal elements from MaskI
 	DiagonalMatrix<double, Dynamic> dm(this->npart);
 	dm.diagonal() = VectorXd::Ones(this->npart);
-	MatrixXd tmp = Mask - (MatrixXd)dm;
+	MatrixXd tmp = Mask - (MatrixXd)dm;	// NOTE: Check this
 	MaskI = find( ( tmp.array() == 1 )
 							.select(MatrixXd::Ones(tmp.rows(),tmp.cols()),
 									MatrixXd::Zero(tmp.rows(),tmp.cols())) );
@@ -630,9 +630,8 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 		//M(I2,I1)=0; // NOTE: INCOMPLETE: what is this?
 	}
 
-	MatrixXi I = find( ( M.array() != 0 )
-								.select(MatrixXd::Ones(M.rows(),M.cols()),
-										MatrixXd::Zero(M.rows(),M.cols())) );
+	// Indicies of nonzeros
+	MatrixXi I = find( ( M.array() != 0 ).select(MatrixXd::Ones(M.rows(),M.cols()), MatrixXd::Zero(M.rows(),M.cols())) );
 	
 	return make_tuple(M,I);
 }
@@ -644,9 +643,21 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 	
 	// NOTE: Another sparse matrix
 	MatrixXd K = MatrixXd::Zero(this->npart,this->npart);
-	// NOTE: INCOMPLETE
-	//assign_d_by_index(K, MaskI, kernel(index(dij,MaskI), index(this->prop.hij,MaskI), index(this->prop.kernel_type,MaskI)));
-	MatrixXd rho = (mj.array()*K.array()).rowwise().sum();
+	/*K = MatrixXd::NullaryExpr(MaskI.rows(), MaskI.cols(), [&](Index i) { 
+		// apply function if Mask is 1
+		if(MaskI(i)) {
+			return kernel(dij(i), this->prop.hij(i), this->prop.kernel_type(i));
+		}
+		// Mask is 0
+		else {
+			return K(i);
+		}
+	});*/
+	/*auto temp = MaskI.unaryExpr([&](int x) {
+		K(x) = kernel(dij(x), this->prop.hij(x), this->prop.kernel_type(x));
+		return x;
+	});*/
+	MatrixXd rho = ( mj.array()*K.array() ).rowwise().sum();
 
 	// Reduced density particles have fixed density that does not consider the proximity of other particles
 	MatrixXd I = vseq(this->nveh+this->nobs, this->npart-1);
