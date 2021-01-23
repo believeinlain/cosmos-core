@@ -321,8 +321,7 @@ void sph_sim::init_prop() {
 		// NOTE: check bounds on the seqs (seq(0,this->nveh))
 		int gr = this->prop.group(seq(0,this->nveh-1),0).rows(); // NOTE: Check here, was causing errors, see also computer_hij
 		int gc = this->prop.group(seq(0,this->nveh-1),0).cols();
-		MatrixXi I = find( ( this->prop.group(seq(0,this->nveh-1),0).array() == this->group_conf.rd_group(i) )
-													.select(MatrixXd::Ones(gr,gc), MatrixXd::Zero(gr,gc)) );
+		MatrixXi I = find( ( this->prop.group(seq(0,this->nveh-1),0).array() == this->group_conf.rd_group(i) ).cast<double>() );
 		this->prop.K(N,0) = -1.0 * this->param.accel.rd * index(this->prop.amax,I).maxCoeff()
 							* kernel(0, this->prop.h(N),1) / kernel_grad(this->prop.h(N),this->prop.h(N), 1);
 
@@ -365,13 +364,13 @@ void sph_sim::kernel_type() {
 
 	this->prop.kernel_type = 2*MatrixXd::Ones(N,N);
 
-	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N));
-	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N));
-	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N)) ); // NOTE: error here
+	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
+	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
+	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() ); // NOTE: error here
 	assign_d_by_index(this->prop.kernel_type, I, 1);
-	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N));
-	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N));
-	I = find( (lhs.array() != 0 && rhs.array() != 0).select(MatrixXd::Ones(N,N), MatrixXd::Zero(N,N)) );
+	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
+	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
+	I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
 	assign_d_by_index(this->prop.kernel_type, I, 1);
 }
 
@@ -536,9 +535,7 @@ void sph_sim::sph_rhs() {
 	DiagonalMatrix<double, Dynamic> dm(this->npart);
 	dm.diagonal() = VectorXd::Ones(this->npart);
 	MatrixXd tmp = Mask - (MatrixXd)dm;	// NOTE: Check this
-	MaskI = find( ( tmp.array() == 1 )
-							.select(MatrixXd::Ones(tmp.rows(),tmp.cols()),
-									MatrixXd::Zero(tmp.rows(),tmp.cols())) );
+	MaskI = find( ( tmp.array() == 1 ).cast<double>() );
 	
 	// Compute gradW
 	MatrixXd gradW = MatrixXd::Zero(this->npart, this->npart);
@@ -609,8 +606,7 @@ tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	// NOTE: This function uses sparse matrices, but let's ignore that for now
 	// Kernel is non-zero (i.e., dij < 2*hij)
-	MatrixXd M = (dij(seqN(0,this->nveh),all).array() < 2*this->prop.hij(seqN(0,this->nveh),all).array())
-					.select(MatrixXd::Ones(this->nveh,dij.cols()),MatrixXd::Zero(this->nveh,dij.cols()));
+	MatrixXd M = (dij(seqN(0,this->nveh),all).array() < 2*this->prop.hij(seqN(0,this->nveh),all).array()).cast<double>();
 	
 	// Obstacle or reduced density particle
 	// NOTE: check that I'm understanding this correctly as an append down
@@ -623,14 +619,12 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	// Reduced density particles
 	for(int i = 0; i < this->nrd; ++i) {
 		int I1 = this->nveh + this->nobs + i;
-		MatrixXi I2 = find( ( this->prop.group.array() != this->prop.group(I1) )
-								.select(MatrixXd::Ones(this->prop.group.rows(),this->prop.group.cols()),
-										MatrixXd::Zero(this->prop.group.rows(),this->prop.group.cols())) );
+		MatrixXi I2 = find( ( this->prop.group.array() != this->prop.group(I1) ).cast<double>() );
 		//M(I2,I1)=0; // NOTE: INCOMPLETE: what is this?
 	}
 
 	// Indicies of nonzeros
-	MatrixXi I = find( ( M.array() != 0 ).select(MatrixXd::Ones(M.rows(),M.cols()), MatrixXd::Zero(M.rows(),M.cols())) );
+	MatrixXi I = find( ( M.array() != 0 ).cast<double>() );
 	
 	return make_tuple(M,I);
 }
@@ -706,9 +700,7 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 	MatrixXd Fz = Fx;
 	for(int i = 0; i < this->group_conf.num_loiter; ++i) {
 		int group_num = this->group_conf.loiter_group(i);
-		MatrixXi II = find( ( this->prop.group.array() == group_num )
-								.select(MatrixXd::Ones(this->prop.group.rows(),this->prop.group.cols()),
-										MatrixXd::Zero(this->prop.group.rows(),this->prop.group.cols())) );
+		MatrixXi II = find( ( this->prop.group.array() == group_num ).cast<double>() );
 		
 		// Loiter circle
 		if(this->lR(i) > 0) {
