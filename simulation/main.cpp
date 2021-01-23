@@ -282,15 +282,20 @@ int main()
 	});
 	cout << mbase2 << endl << endl;
 	
-	MatrixXd mlin(1,9);
-	RowVectorXd vlin;
-	vlin.setLinSpaced(9,1,9);
-	mlin << vlin.matrix();
-	cout << mlin << endl << endl;
-	MatrixXd mlinQ(3,9);
-	mlinQ << mlin , mlin , mlin.array()-1;
-	cout << mlinQ;
-	
+	MatrixXd mcol(1,5);
+	mcol << 1,2,3,4,5;
+	MatrixXi mfcol = find( (mcol.array() > 3 || mcol.array() == 2).cast<double>() );
+	cout << mfcol << endl << endl;
+	cout << mbase2 << endl << endl;
+	// reshaped reshapes matrix into a col vector
+	mbase2(mfcol.reshaped(),1) = mbase2(mfcol.reshaped(),1).array() * 10;
+	cout << mbase2 << endl << endl;
+
+	MatrixXd matan2 = MatrixXd::NullaryExpr(mbase.rows(), mbase.cols(), [&](Index i) { 
+		return atan2(mbase(i),1);
+	});
+	cout << matan2 << endl << endl;
+	cout << exp(mcol.array()) << endl << endl;
 
 
 }

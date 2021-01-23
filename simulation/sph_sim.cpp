@@ -129,7 +129,7 @@ MatrixXi find(const MatrixXd& A) {
 	for(Index i=0; i<A.size(); ++i) {
 		if(A(i)) {
 			idxs(0,size) = i;
-			size ++;
+			size++;
 		}
 	}
 	if(size > 0) {
@@ -709,6 +709,28 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 
 			// Shift the center of the loiter circle
 			//auto x = index(this->states,II)
+			MatrixXd x = this->states(II.reshaped(),0) - this->lx(II.reshaped(),0);
+			MatrixXd y = this->states(II.reshaped(),1) - this->lx(II.reshaped(),1);
+
+			// Attraction component
+			MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			d = (d.array() - this->lR(i)) / width;
+			MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
+
+			MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			MatrixXd F1x = mag.array() * x.array() / rr.array();
+			MatrixXd F1y = mag.array() * y.array() / rr.array();
+
+			// Circulation component
+			MatrixXd theta = MatrixXd::NullaryExpr(y.rows(), y.cols(), [&](Index i) { 
+				return atan2(y(i),x(i));
+			});
+			MatrixXd F2x = ( exp(2) * ( rr.array() / this->lR(i) ).pow(2) * exp(-2 * rr.array() / this->lR(i)) ) * sin(theta.array()) * -1;
+			MatrixXd F2y = ( exp(2) * ( rr.array() / this->lR(i) ).pow(2) * exp(-2 * rr.array() / this->lR(i)) ) * cos(theta.array());
+
+			// Total force
+			int w = 1;
+			
 		}
 	}
 

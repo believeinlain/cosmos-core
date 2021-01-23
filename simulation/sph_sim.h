@@ -25,8 +25,8 @@ MatrixXd append_down(MatrixXd& m, const MatrixXd& app);
 
 class sph_sim {
 private:
-	// Loiter circle x,y,R
-	// lx is a struct
+	// Loiter circle x,y,z, R
+	MatrixXd lx;
 	MatrixXd lR;
 
 	// Time
