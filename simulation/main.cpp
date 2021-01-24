@@ -233,7 +233,8 @@ int main()
 	cout << mquot << endl << endl;
 	MatrixXd mquot_i = mquot.array().isInf().cast<double>();
 	cout << mquot_i << endl << endl;
-	assign_d_by_index(mquot, find(mquot_i), 0);
+	//assign_d_by_index(mquot, find(mquot_i), 0);
+	mquot = (mquot.array().isInf()).select(0, mquot);	// the easier way
 	cout << mquot << endl << endl;
 
 
