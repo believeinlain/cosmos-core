@@ -539,7 +539,7 @@ void sph_sim::sph_rhs() {
 	
 	// Compute gradW
 	MatrixXd gradW = MatrixXd::Zero(this->npart, this->npart);
-	MaskI = MaskI.unaryExpr([&] (int x) {
+	MaskI = MaskI.unaryExpr([&](int x) {
 		gradW(x) = kernel_grad(dij(x), this->prop.hij(x), this->prop.kernel_type(x));
 		return x;
 	});
@@ -565,7 +565,12 @@ void sph_sim::sph_rhs() {
 	tie(Fx,Fy,Fz) = external_force();
 
 	// Sum of forces
-	// DvDt = ...
+	double max_amax = MatrixXd::NullaryExpr(this->nveh, 1, [&](Index i) {
+		return this->prop.amax(i);
+	}).maxCoeff();
+	DvDt(all,0) = this->param.gain.sph * DvDt(all,0).array() + this->param.gain.ext * max_amax * Fx.array() - this->param.gain.drag * this->states(all,3).array();
+	DvDt(all,1) = this->param.gain.sph * DvDt(all,1).array() + this->param.gain.ext * max_amax * Fy.array() - this->param.gain.drag * this->states(all,4).array();
+	DvDt(all,2) = this->param.gain.sph * DvDt(all,2).array() + this->param.gain.ext * max_amax * Fz.array() - this->param.gain.drag * this->states(all,5).array();
 
 	MatrixXd rhs = sph_compute_rates(DvDt);
 
@@ -620,7 +625,7 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	for(int i = 0; i < this->nrd; ++i) {
 		int I1 = this->nveh + this->nobs + i;
 		MatrixXi I2 = find( ( this->prop.group.array() != this->prop.group(I1) ).cast<double>() );
-		//M(I2,I1)=0; // NOTE: INCOMPLETE: what is this?
+		M(I2.reshaped(),I1).array() = 0; // NOTE: check this
 	}
 
 	// Indicies of nonzeros
