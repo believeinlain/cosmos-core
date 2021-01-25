@@ -2,89 +2,10 @@
 #include <numeric>
 #include <vector>
 #include "Eigen/Dense"
+#include "sph_sim.h"
  
 using namespace Eigen;
 using namespace std;
-
-MatrixXi find(const MatrixXd& A) {
-	MatrixXi idxs(1,A.size());
-	int size = 0;
-	for(Index i=0; i<A.size(); ++i) {
-		if(A(i)) {
-			idxs(0,size) = i;
-			size ++;
-		}
-	}
-	if(size > 0) {
-		idxs.conservativeResize(1,size);
-		if(A.rows() > 1) {
-			idxs.transposeInPlace();
-		}
-	} else {
-		idxs.resize(0,0);
-	}
-	
-	return idxs;
-}
-
-MatrixXd index(const MatrixXd& m, const MatrixXi& I) {
-	MatrixXd out(I.rows(),I.cols());
-
-	for(int i = 0; i < I.size(); ++i) {
-		out(i) = m(I(i));
-	}
-
-	return out;
-}
-
-MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
-	for(int i = 0; i < I.size(); ++i) {
-		m(I(i)) = s;
-	}
-	return m;
-}
-
-// Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ... }), inclusive
-MatrixXd vseq(int val0, int valn) {
-	RowVectorXd rvxd;
-	rvxd.setLinSpaced(valn-val0+1, val0, valn);
-	return rvxd.matrix();
-}
-
-/*void sortv(const MatrixXd& m) {
-	vector<double> sorted;
-	for(int i = 0; i < m.size(); ++i) {
-		sorted.push_back(m(i));
-	}
-	sort(sorted.begin(), sorted.end());
-
-}*/
-
-// Return sorted indices of c, in ascending order
-MatrixXi sort(const MatrixXd& c) {
-	MatrixXi idxs(1,c.size());
-	for(int i = 0; i < c.size(); ++i) {
-		idxs(i) = i;
-	}
-	sort(idxs.data(), idxs.data()+idxs.size(),[&](int i, int j)
-          { return c(i) < c(j);});
-	return idxs;
-}
-MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
-	int off = m.cols();
-	MatrixXd out(m.rows(), off + app.cols());
-	out.topLeftCorner(m.rows(), m.cols()) = m;
-	out(seq(0,last),seq(off,last)) = app;
-	return out;
-}
-
-MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
-	int off = m.rows();
-	MatrixXd out(off + app.rows(), m.cols());
-	out.topLeftCorner(m.rows(), m.cols()) = m;
-	out(seq(off,last),seq(0,last)) = app;
-	return out;
-}
 
 double myfunction (double a, double b) {
 	return a + b;
@@ -321,5 +242,7 @@ int main()
 	cout << MatrixXd::NullaryExpr(12, 1, [&](Index i) {
 		return mbase(i);
 	}).maxCoeff() << endl;
+
+	//sph_sim sph;
 
 }

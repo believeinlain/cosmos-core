@@ -202,13 +202,10 @@ MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
 
 // sph_sim constructor
 sph_sim::sph_sim() {
-	param_struct param;
+	// Initialize default settings
+	init();
 }
-sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) {
-	this->param = param;
-	this->group_conf = group_conf;
-	this->t0 = t0;
-
+sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) : param(param), group_conf(group_conf), t0(t0) {
 	// Setup SPH properties
 	init_prop();
 	compute_hij();
@@ -216,7 +213,66 @@ sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*=
 
 	// Initialize positions and velocities
 	init_states();
+}
+
+void sph_sim::init() {
+	// Initialize SPH simulation parameters
+	param.ndim = 2;
+	param.gain.sph = 1.0;
+	param.gain.ext = 0.25;
+	param.gain.drag = 10.0;
+	param.accel.veh = 1.0;
+	param.accel.obs = 1.0;
+	param.accel.rd = 0.25;
+	param.Re = 10.0;
+	param.dt = 0.01;
+
+	// Initialize group configurations
+	// The groups of vehicles, obstacles, and reduced density particles
+	// (Dimensional parameters)
 	
+	// Array containing the number of vehicles in each group
+	group_conf.num_veh.resize(1); group_conf.num_veh << 15;
+	// Initial positions/velocities for the vehicle groups
+	group_conf.veh_init.x.resize(1); group_conf.veh_init.x << 0;
+	group_conf.veh_init.y.resize(1); group_conf.veh_init.y << 0;
+	group_conf.veh_init.z.resize(1); group_conf.veh_init.z << 0;
+	group_conf.veh_init.u.resize(1); group_conf.veh_init.u << 0;
+	group_conf.veh_init.v.resize(1); group_conf.veh_init.v << 0;
+	group_conf.veh_init.w.resize(1); group_conf.veh_init.w << 0;
+	// Smoothing width for each group
+	group_conf.veh_h.resize(1);	group_conf.veh_h << 2;
+	// Limits for speed and acceleration
+	group_conf.veh_limits.vmin.resize(1); group_conf.veh_limits.vmin << 3;
+	group_conf.veh_limits.vmax.resize(1); group_conf.veh_limits.vmax << 6;
+	group_conf.veh_limits.turning_radius.resize(1); group_conf.veh_limits.turning_radius << 3;
+	// Total number of obstacle particles
+	group_conf.num_obs = 5;
+	// Size of obstacles particles * 0.5
+	group_conf.obs_h.resize(6); group_conf.obs_h << 2,2,2,2,2,2;
+	// Positions for the obstacles
+	group_conf.obs_init.x.resize(5); group_conf.obs_init.x << 7, 12, 16,  9, 22;
+	group_conf.obs_init.y.resize(5); group_conf.obs_init.y << 0,  4,  2, -2, -6;
+	group_conf.obs_init.z.resize(5); group_conf.obs_init.z << 0,  0,  0,  0,  0;
+	// Total number of reduced density particles
+	group_conf.num_rd = 0;
+	// The group that each reduced density particle belongs to.
+	// Group number corresponds to array index for num_veh. -1 means not active. // NOTE: octave uses 0 for non-active!
+	group_conf.rd_group.resize(1); group_conf.rd_group << 0;
+	// Initial positions/velocities for reduced density particles
+	group_conf.rd_init.x.resize(1); group_conf.rd_init.x << 0;
+	group_conf.rd_init.y.resize(1); group_conf.rd_init.y << 0;
+	group_conf.rd_init.z.resize(1); group_conf.rd_init.z << 0;
+	group_conf.rd_init.u.resize(1); group_conf.rd_init.u << 0;
+	group_conf.rd_init.u.resize(1); group_conf.rd_init.v << 0;
+	group_conf.rd_init.w.resize(1); group_conf.rd_init.w << 0;
+	// Smoothing width for reduced density particle
+	group_conf.rd_h.resize(1); group_conf.rd_h << 30;
+	// Total number of loiter circles
+	group_conf.num_loiter = 1;
+	// The group that each loiter circle belongs to.
+	// Group number corresponds to array index for num_veh. -1 means not active. // NOTE: octave uses 0 for non-active!
+	group_conf.loiter_group.resize(1); group_conf.loiter_group << 0;
 }
 
 void sph_sim::init_prop() {

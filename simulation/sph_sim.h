@@ -20,8 +20,8 @@ MatrixXd index(const MatrixXd& m, const MatrixXi& I);
 MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s);
 MatrixXd vseq(int val0, int val_last);
 MatrixXi sort(const MatrixXd& c);
-MatrixXd append_right(MatrixXd& m, const MatrixXd& app);
-MatrixXd append_down(MatrixXd& m, const MatrixXd& app);
+MatrixXd append_right(const MatrixXd& m, const MatrixXd& app);
+MatrixXd append_down(const MatrixXd& m, const MatrixXd& app);
 
 class sph_sim {
 private:
@@ -50,13 +50,16 @@ private:
 	MatrixXd states;
 
 	// Total number of SPH particles
-	unsigned int npart;
+	int npart;
 
 	// Number of vehicles
-	unsigned int nveh, nobs, nrd;
+	int nveh, nobs, nrd;
 
 	// Reference density
 	double rho0;
+
+	// Default simulation parameters
+	void init();
 
 	// Initialize properties for each SPH particle
 	void init_prop();
