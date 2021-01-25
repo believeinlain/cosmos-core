@@ -1,21 +1,5 @@
 #include "sph_sim.h"
 
-// Evaluates the smoothing kernel function for the SPH equations
-MatrixXd kernel(MatrixXd r, MatrixXd h, MatrixXd type) {
-	MatrixXd s = r.array() / h.array();
-	
-	MatrixXd W(s.rows(), s.cols());
-
-	// Cubic spline kernel, used for vehicle-reduced density (type 1) particle interactions.
-	//W = W + (type==1).*( ( 1 - 3/2*s.^2        + 3/4*s.^3 )          .*( s<1 ) + ( 1/4*(2-s).^3 )           .*( (s >= 1)   .*(s <= 2) ) )   ./(pi*h.^3);
-	//W = W + (type==1)*( ( 1.0-3.0/2.0*pow(s,2.0) + 3.0/4.0*pow(s,3.0) ) * (s<1) + ( 1.0/4.0*pow((2.0-s),3.0) ) * ( (s >= 1.0) * (s <= 2.0) ) ) / M_PI*pow(h,3.0);
-
-	// Quadratic kernel, used for all other (type 2) interactions
-	//W = W + ( type==2 ).*15./(16*pi*h.^3)     .*(s.^2/4-s+1)         .*(s<2);
-	//W = W + (type==1)*15.0/(16.0*M_PI*pow(h,3.0))*(pow(s,2.0),4.0-s+1.0)*(s<2.0);
-	return W;
-}
-
 /// Evaluates the smoothing kernel function for the SPH equations
 /**
 The equations:
@@ -207,6 +191,7 @@ sph_sim::sph_sim() {
 
 	// Setup SPH properties
 	init_prop();
+	compute_hij();
 }
 sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) : param(param), group_conf(group_conf), t0(t0) {
 	// Setup SPH properties
@@ -405,6 +390,9 @@ void sph_sim::init_prop() {
 		prop.particle_type(N,0) = particle_type_enum::obs;
 		N++;
 	}
+	nrd = group_conf.num_rd;
+	// Total number of SPH particles
+	npart = N;
 }
 
 // Compute h_ij matrix
