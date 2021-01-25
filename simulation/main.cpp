@@ -243,6 +243,6 @@ int main()
 		return mbase(i);
 	}).maxCoeff() << endl;
 
-	//sph_sim sph;
+	sph_sim SPH;
 
 }

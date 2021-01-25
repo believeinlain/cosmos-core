@@ -1,6 +1,7 @@
 #ifndef SPH_SIM_H
 #define SPH_SIM_H
 
+#include <iostream>
 #include <math.h>
 #include <numeric>
 #include <vector>
@@ -63,6 +64,9 @@ private:
 
 	// Initialize properties for each SPH particle
 	void init_prop();
+
+	// Resize vectors of prop, adds n more rows. For internal use
+	void resize_prop(int rows);
 
 	// Compute h_ij matrix
 	void compute_hij();
