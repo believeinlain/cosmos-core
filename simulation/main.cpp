@@ -317,5 +317,9 @@ int main()
 		return mevenmask(i);
 	});
 	cout << mdest << endl << endl;
+	// max of first 12 Index position coefficients of mbase
+	cout << MatrixXd::NullaryExpr(12, 1, [&](Index i) {
+		return mbase(i);
+	}).maxCoeff() << endl;
 
 }
