@@ -775,8 +775,47 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 // Compute the rate of change of SPH.states, i.e., the velocity
 // and accelerations, while applying vehicle constraints
 MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
-	MatrixXd rates;
-	//INCOMPLETE
+	// Break acceleration into 2 components, normal and tangential:
+	MatrixXd v = this->states(all,seq(3,5));
+	MatrixXd vmag = v.array().pow(2).rowwise().sum().sqrt();
+	// Unit vector in the v direction
+	MatrixXd vhat = v.array() / (vmag * MatrixXd::Ones(1,3) ).array();
+	MatrixXi I = find( ( vmag.array() == 0 ).cast<double>() );
+	vhat(I.reshaped(),0).array() = 1;
+	vhat(I.reshaped(),1).array() = 0;
+	vhat(I.reshaped(),2).array() = 0;
+
+	// Acceleration in the normal and tangent direction
+	MatrixXd a_tan = ( ( DvDt.array() * vhat.array() ).rowwise().sum().matrix() * MatrixXd::Ones(1,3) ).array() * vhat.array();
+	MatrixXd a_norm = DvDt - a_tan;
+	MatrixXd a_tan_mag = a_tan.array().pow(2).rowwise().sum().sqrt();
+
+	// Limit acceleration
+	I = find( ( a_tan_mag.array() > this->prop.amax.array() ).cast<double>() );
+	// NOTE: Check all these. Also check order of operations. ./ then *, or * then ./ ?
+	if(I.any()) {
+		a_tan(I.reshaped(),all) = a_tan(I.reshaped(),all).array() / ( a_tan_mag(I.reshaped(),0) * MatrixXd::Ones(1,3) ).array() * ( this->prop.amax(I.reshaped(), 0) * MatrixXd::Ones(1,3) ).array();
+	}
+
+	// Limit speed
+	I = find( ( vmag.array() > this->prop.vmax.array() ).cast<double>() );
+	if(I.any()) {
+		a_tan(I.reshaped(), all) = (this->prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
+	}
+	I = find( ( vmag.array() < this->prop.vmin.array() ).cast<double>() );
+	if(I.any()) {
+		a_tan(I.reshaped(), all) = (this->prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
+	}
+
+	// Limit turning radius
+	MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
+	I = find( ( a_norm_mag.array() > vmag.array().pow(2) / this->prop.turning_radius.array() ).cast<double>() );
+	if(I.any()) {
+		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / ( a_norm_mag(I.reshaped(),0)*MatrixXd::Ones(1,3) ).array() * ( vmag(I.reshaped(),0).array().pow(2) / (this->prop.turning_radius(I.reshaped(),0)*MatrixXd::Ones(1,3)).array() );
+	}
+
+	MatrixXd rates = append_right( this->states(all,seq(3,5)) , ( a_tan(all,seq(0,2)) + a_norm(all,seq(0,2)) ) );
+
 	return rates;
 }
 
