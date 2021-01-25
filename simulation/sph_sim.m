@@ -1128,6 +1128,7 @@ classdef sph_sim
 
 
                     %total force
+                    %NOTE: Fx(II) is same shape as F1x and F2x, which is why the assignment works
                     w=1;
                     Fx(II) = w*F1x+(2-w)*F2x;
                     Fy(II) = w*F1y+(2-w)*F2y;

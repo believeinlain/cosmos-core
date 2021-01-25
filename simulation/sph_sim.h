@@ -105,7 +105,7 @@ private:
 
 	// Compute the rate of change of SPH.states, i.e., the velocity
 	// and accelerations, while applying vehicle constraints
-	MatrixXd sph_compute_rates(const Matrix3D& DvDt);
+	MatrixXd sph_compute_rates(const MatrixXd& DvDt);
 
 	
 public:
