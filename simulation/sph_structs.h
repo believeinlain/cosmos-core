@@ -71,7 +71,7 @@ struct prop_struct {
 // SPH simulation parameters
 struct param_struct {
 	// Dimension of the simulation (2 or 3)
-	unsigned int ndim = 2;
+	int ndim = 2;
 
 	gain_struct gain;
 	accel_struct accel;
@@ -98,7 +98,7 @@ struct group_conf_struct {
 	veh_limits_struct veh_limits;
 
 	// Total number of obstacle particles
-	unsigned int num_obs;
+	int num_obs;
 
 	// Vector of size of particles (times 0.5)
 	VectorXd obs_h;
@@ -107,7 +107,7 @@ struct group_conf_struct {
 	pos_struct obs_init;
 
 	// Total number of reduced density particles
-	unsigned int num_rd;
+	int num_rd;
 
 	// Which group does each reduced density particle belong to?
 	// Group number corresponds to array index for num_veh
@@ -121,7 +121,7 @@ struct group_conf_struct {
 	VectorXd rd_h;
 
 	// Total number of loiter circles
-	unsigned int num_loiter;
+	int num_loiter;
 
 	// Which group does each loiter circle belong to?
 	// Group number corresponds to array index for num_veh
