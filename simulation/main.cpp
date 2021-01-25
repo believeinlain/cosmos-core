@@ -298,5 +298,24 @@ int main()
 	cout << matan2 << endl << endl;
 	cout << exp(mcol.array()) << endl << endl;
 
+	MatrixXd meven = mbase.unaryExpr([&](double x) {
+		if( (int)x % 2 == 0) {
+			return 1.;
+		} else {
+			return 0.;
+		}
+	});
+	cout << meven << endl << endl;
+	MatrixXi mevenmask = find(meven);
+	cout << mevenmask << endl << endl;
+	//cout << MatrixXd::NullaryExpr([&](meven))
+	cout << sqrt( pow(mevenmask.unaryExpr([&](int x) {return mbase(x);}).mean(),2) * mevenmask.size() ) / 2.0 << endl << endl;
+	MatrixXd massign = vseq(1, mevenmask.rows());
+	MatrixXd mdest = MatrixXd::Zero(mbase.rows(), mbase.cols());
+	mevenmask = MatrixXi::NullaryExpr(mevenmask.rows(), mevenmask.cols(), [&](Index i) {
+		mdest(mevenmask(i)) = massign(i);
+		return mevenmask(i);
+	});
+	cout << mdest << endl << endl;
 
 }

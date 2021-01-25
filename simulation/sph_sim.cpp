@@ -539,8 +539,10 @@ void sph_sim::sph_rhs() {
 	
 	// Compute gradW
 	MatrixXd gradW = MatrixXd::Zero(this->npart, this->npart);
-	// NOTE: INCOMPLETE
-	//gradW(MaskI) = kernel_grad(dij(MaskI), this->prop.hij(MaskI), this->prop.kernel_type(MaskI));
+	MaskI = MaskI.unaryExpr([&] (int x) {
+		gradW(x) = kernel_grad(dij(x), this->prop.hij(x), this->prop.kernel_type(x));
+		return x;
+	});
 
 	// Compute pressure
 	MatrixXd P = sph_compute_pressure(rho);
@@ -552,10 +554,11 @@ void sph_sim::sph_rhs() {
 	// Viscosity
 	MatrixXd Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
 
-	Matrix3D DvDt;
-	// NOTE: INCOMPLETE
-	// DvDt = -cat ...
-	// DvDt = ...
+	MatrixXd DvDt(unit_ij.z0.rows(), 3);
+	DvDt <<	(Pi_term.array() * unit_ij.z0.array() * -1).rowwise().sum(),
+			(Pi_term.array() * unit_ij.z1.array() * -1).rowwise().sum(),
+			(Pi_term.array() * unit_ij.z2.array() * -1).rowwise().sum();
+	DvDt = DvDt.array() + Pi_term.array()/this->param.Re;
 
 	// External forcing
 	MatrixXd Fx, Fy, Fz;
@@ -725,16 +728,23 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			MatrixXd F2y = ( exp(2) * ( rr.array() / this->lR(i) ).pow(2) * exp(-2 * rr.array() / this->lR(i)) ) * cos(theta.array());
 
 			// Total force
-			int w = 1;
-			// INCOMPLETE
-			// Fx(II) = ...
-			// Fy(II) = ...
+			double w = 1.0;
+			II = MatrixXi::NullaryExpr(II.rows(), II.cols(), [&](Index i) {
+				Fx(II(i)) = w*F1x(i) + (2-w)*F2x(i);
+				Fy(II(i)) = w*F1y(i) + (2-w)*F2y(i);
+				return II(i);
+			});
 		} else {
 			// Simple attractor (no circulation force)
 
 			// Shift the center of the loiter circle
-			// INCOMPLETE
-			double width; // = ...
+			double width = sqrt(
+								pow(
+									II.unaryExpr( [&](int x) { return this->prop.h(x); } ).mean(),
+									2
+								)
+								* II.size()
+							) / 2.0;
 			MatrixXd x = this->states(II.reshaped(),0) - this->lx(II.reshaped(),0);
 			MatrixXd y = this->states(II.reshaped(),1) - this->lx(II.reshaped(),1);
 
@@ -744,8 +754,11 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
 
 			MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
-			MatrixXd F1x = mag.array() * x.array() / rr.array();
-			MatrixXd F1y = mag.array() * y.array() / rr.array();
+			II = MatrixXi::NullaryExpr(II.rows(), II.cols(), [&](Index i) {
+				Fx(II(i)) = mag(i) * x(i) / rr(i);
+				Fy(II(i)) = mag(i) * y(i) / rr(i);
+				return II(i);
+			});
 		}
 	}
 	Fx = (Fx.array().isInf()).select(0, Fx);
@@ -756,9 +769,9 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 
 // Compute the rate of change of SPH.states, i.e., the velocity
 // and accelerations, while applying vehicle constraints
-MatrixXd sph_sim::sph_compute_rates(const Matrix3D& DvDt) {
+MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	MatrixXd rates;
-
+	//INCOMPLETE
 	return rates;
 }
 
