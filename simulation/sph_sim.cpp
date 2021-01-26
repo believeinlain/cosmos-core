@@ -200,6 +200,93 @@ sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*=
 	init_states();
 }
 
+// Update or change the SPH properties to match the properties in the arguments param and group_conf
+void sph_sim::sph_update_properties(const param_struct& param, const group_conf_struct& group) {
+	// Define parameters
+	this->param = param;
+
+	// Define group configuration
+	this->group_conf = group_conf;
+
+	// Setup SPH properties
+	init_prop();
+	compute_hij();
+}
+
+// Take a single time-step forward in the simulation
+void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
+	// NOTE: this simulation only uses the first 3 args, 2 more args are in the octave code
+	// Set reduced density particle positions
+	if(rdx.size() != 0 && group_conf.num_rd > 0) {
+		if(rdx.rows() != group_conf.num_rd && rdx.rows() != 1) {
+			cout << "Error in input to sph_sim_step:" << endl;
+			cout << "Number of reduced density particle positions must equal the number of reduced density particles." << endl;
+			cout << "rdx.rows(): " << rdx.rows() << "; group_conf.num_rd: " << group_conf.num_rd << ";" << endl;
+			throw "Error in input to sph_sim_step";
+		}
+		int I1 = nveh + group_conf.num_obs;
+		states.col(0)(seq(I1,last)) = rdx.col(0);
+		states.col(1)(seq(I1,last)) = rdx.col(1);
+		if(param.ndim == 3) {
+			states.col(2)(seq(I1,last)) = rdx.col(2);
+		}
+	}
+
+	// Set the loiter circle positions and radii
+	if(lx.size() != 0 && group_conf.num_loiter > 0) {
+		if(lx.rows() != group_conf.num_loiter) {
+			cout << "Error in input to sph_sim_step:" << endl;
+			cout << "Number of loiter circle positions must equal the number of loiter circles." << endl;
+			cout << "lx.rows(): " << lx.rows() << "; group_conf.num_loiter: " << group_conf.num_loiter << ";" << endl;
+			throw "Error in input to sph_sim_step";
+		}
+		this->lx = lx;
+
+		// Set radius
+		if(lR.size() != 0) {
+			this->lR = lR;
+		} else {
+			// Radius = minimum turning radius
+			this->lR.resize(group_conf.num_loiter,1);
+			for(int i = 0; i < group_conf.num_loiter; ++i) {
+				int group_num = group_conf.loiter_group(i);
+				this->lR(i) = max( 	0.5 * group_conf.veh_h(group_num) / sin( M_PI / max( 2 , group_conf.num_veh(group_num) ) ),
+									group_conf.veh_limits.turning_radius(group_num) );
+			}
+		}
+	}
+
+	// Assume the background velocity is changing slower than the SPH timestep so just load it once
+	// if exist(velfunc) //NOTE: velfunc arg not used
+	MatrixXd uvw = MatrixXd::Zero(states.rows(),3);
+
+	// Fourth order Runge-Kutta timestep
+	MatrixXd k1 = sph_rhs();
+	k1(all,seq(0,2)) = k1(all,seq(0,2)) + uvw;
+
+	sph_sim tmp = *this;
+	tmp.states = tmp.states + tmp.param.dt/2*k1;
+	MatrixXd k2 = tmp.sph_rhs();
+	k2(all,seq(0,2)) = k2(all,seq(0,2)) + uvw;
+
+	tmp = *this;
+	tmp.states = tmp.states + tmp.param.dt/2*k2;
+	MatrixXd k3 = tmp.sph_rhs();
+	k3(all,seq(0,2)) = k3(all,seq(0,2)) + uvw;
+
+	tmp = *this;
+	tmp.states = tmp.states + tmp.param.dt/2*k3;
+	MatrixXd k4 = tmp.sph_rhs();
+	k4(all,seq(0,2)) = k4(all,seq(0,2)) + uvw;
+
+	states = states + param.dt/6*(k1 + 2*k2 + 2*k3 + k4);
+	// Increment time
+	t = t + param.dt;
+
+	// Constrain the velocity
+	constrain_vel();
+}
+
 void sph_sim::init() {
 	// Initialize SPH simulation parameters
 	param.ndim = 2;
@@ -581,7 +668,7 @@ void sph_sim::init3d() {
 }
 
 // Return the right hand side of the SPH momentum equation
-void sph_sim::sph_rhs() {
+MatrixXd sph_sim::sph_rhs() {
 	// Compute the interparticle distance and vectors
 	MatrixXd dij;
 	Matrix3D rij;
@@ -644,6 +731,7 @@ void sph_sim::sph_rhs() {
 		rhs(all,5).array() = 0;
 	}
 
+	return rhs;
 }
 
 // Compute the distance, vector, and unit vector between particles i and j
@@ -858,30 +946,51 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	// Limit acceleration
 	I = find( ( a_tan_mag.array() > prop.amax.array() ).cast<double>() );
 	// NOTE: Check all these. Also check order of operations. ./ then *, or * then ./ ?
-	if(I.any()) {
+	if(I.size() != 0 ) {
 		a_tan(I.reshaped(),all) = a_tan(I.reshaped(),all).array() / ( a_tan_mag(I.reshaped(),0) * MatrixXd::Ones(1,3) ).array() * ( prop.amax(I.reshaped(), 0) * MatrixXd::Ones(1,3) ).array();
 	}
 
 	// Limit speed
 	I = find( ( vmag.array() > prop.vmax.array() ).cast<double>() );
-	if(I.any()) {
+	if(I.size() != 0 ) {
 		a_tan(I.reshaped(), all) = (prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
 	}
 	I = find( ( vmag.array() < prop.vmin.array() ).cast<double>() );
-	if(I.any()) {
+	if(I.size() != 0 ) {
 		a_tan(I.reshaped(), all) = (prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
 	}
 
 	// Limit turning radius
 	MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
 	I = find( ( a_norm_mag.array() > vmag.array().pow(2) / prop.turning_radius.array() ).cast<double>() );
-	if(I.any()) {
+	if(I.size() != 0 ) {
 		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / ( a_norm_mag(I.reshaped(),0)*MatrixXd::Ones(1,3) ).array() * ( vmag(I.reshaped(),0).array().pow(2) / (prop.turning_radius(I.reshaped(),0)*MatrixXd::Ones(1,3)).array() );
 	}
 
 	MatrixXd rates = append_right( states(all,seq(3,5)) , ( a_tan(all,seq(0,2)) + a_norm(all,seq(0,2)) ) );
 
 	return rates;
+}
+
+// Apply velocity constraints
+void sph_sim::constrain_vel() {
+	// Max velocity constrain
+	MatrixXd V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
+	MatrixXi I = find( (V.array() < prop.vmax.array() ).cast<double>() );
+	if(I.size() != 0 ) {
+		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
+		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
+		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
+	}
+
+	// Min velocity constrain
+	V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
+	I = find( (V.array() < prop.vmin.array() ).cast<double>() );
+	if(I.size() != 0 ) {
+		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
+		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
+		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
+	}
 }
 
 // =============================================================

@@ -326,6 +326,7 @@ classdef sph_sim
             %Fourth order Runge-Kutta time step:
             k1 = sph_rhs(obj);
             k1(:,1:3) = k1(:,1:3)+[u v w];
+            k1
             
             tmp=obj;
             tmp.states = tmp.states+tmp.param.dt/2*k1;
