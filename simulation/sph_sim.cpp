@@ -444,7 +444,7 @@ void sph_sim::init_prop() {
 		prop.K(N,0) = param.accel.obs * prop.amax.maxCoeff() * KER0 / (rho0 * KERh);
 
 		// Group number and particle type
-		prop.group(N,0) = i;
+		prop.group(N,0) = -1;
 		prop.particle_type(N,0) = particle_type_enum::obs;
 		N++;
 	}
@@ -470,15 +470,13 @@ void sph_sim::init_prop() {
 		// No viscosity for attractors
 		prop.mu(N,0) = 0;
 		// NOTE: check bounds on the seqs (seq(0,nveh))
-		int gr = prop.group(seq(0,nveh-1),0).rows(); // NOTE: Check here, was causing errors, see also computer_hij
-		int gc = prop.group(seq(0,nveh-1),0).cols();
 		MatrixXi I = find( ( prop.group(seq(0,nveh-1),0).array() == group_conf.rd_group(i) ).cast<double>() );
 		prop.K(N,0) = -1.0 * param.accel.rd * index(prop.amax,I).maxCoeff()
 							* kernel(0, prop.h(N),1) / kernel_grad(prop.h(N),prop.h(N), 1);
 
 		// Group number and particle type
-		prop.group(N,0) = i;
-		prop.particle_type(N,0) = particle_type_enum::obs;
+		prop.group(N,0) = group_conf.rd_group(i);
+		prop.particle_type(N,0) = particle_type_enum::rd;
 		N++;
 	}
 	nrd = group_conf.num_rd;
@@ -885,8 +883,8 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			double width = lR(i)/4;
 
 			// Shift the center of the loiter circle
-			MatrixXd x = states(II.reshaped(),0) - lx(II.reshaped(),0);
-			MatrixXd y = states(II.reshaped(),1) - lx(II.reshaped(),1);
+			MatrixXd x = states(II.reshaped(),0).array() - lx(i,0);
+			MatrixXd y = states(II.reshaped(),1).array() - lx(i,1);
 
 			// Attraction component
 			MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
@@ -956,17 +954,17 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	vhat(I.reshaped(),0).array() = 1;
 	vhat(I.reshaped(),1).array() = 0;
 	vhat(I.reshaped(),2).array() = 0;
-	//cout << "DvDt\n" << DvDt << endl << endl;
-	//cout << "v\n" << v << endl << endl;
-	//cout << "vhat\n" << vhat << endl << endl;
-	//cout << "I\n" << I << endl << endl;
+	cout << "DvDt\n" << DvDt << endl << endl;
+	cout << "v\n" << v << endl << endl;
+	cout << "vhat\n" << vhat << endl << endl;
+	cout << "I\n" << I << endl << endl;
 
 	// Acceleration in the normal and tangent direction
 	MatrixXd a_tan = ( ( DvDt.array() * vhat.array() ).rowwise().sum().matrix() * MatrixXd::Ones(1,3) ).array() * vhat.array();
 	MatrixXd a_norm = DvDt - a_tan;
 	MatrixXd a_tan_mag = a_tan.array().pow(2).rowwise().sum().sqrt();
-	//cout << "a_tan\n" << a_tan << endl << endl;
-	//cout << "a_tan_mag\n" << a_tan_mag << endl << endl;
+	cout << "a_tan\n" << a_tan << endl << endl;
+	cout << "a_tan_mag\n" << a_tan_mag << endl << endl;
 
 	// Limit acceleration
 	I = find( ( a_tan_mag.array() > prop.amax.array() ).cast<double>() );
@@ -988,10 +986,10 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	// Limit turning radius
 	MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
 	I = find( ( a_norm_mag.array() > vmag.array().pow(2) / prop.turning_radius.array() ).cast<double>() );
-	//cout << "a_norm_mag\n" << a_norm_mag << endl << endl;
-	//cout << "I\n" << I << endl << endl;
-	//cout << "a_norm\n" << a_norm << endl << endl;
-	//cout << "vmag\n" << vmag << endl << endl;
+	cout << "a_norm_mag\n" << a_norm_mag << endl << endl;
+	cout << "I\n" << I << endl << endl;
+	cout << "a_norm\n" << a_norm << endl << endl;
+	cout << "vmag\n" << vmag << endl << endl;
 	
 	if(I.size() != 0 ) {
 		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / ( a_norm_mag(I.reshaped(),0)*MatrixXd::Ones(1,3) ).array() * ( vmag(I.reshaped(),0).array().pow(2) / (prop.turning_radius(I.reshaped(),0)*MatrixXd::Ones(1,3)).array() );
