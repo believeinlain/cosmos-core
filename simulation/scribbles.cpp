@@ -67,7 +67,7 @@ int main()
 	ArrayXi fandab = find(andab);
 	cout << fandab << endl << endl;
 
-	cout << assign_d_by_index(a3,fandab,9) << endl << endl;
+	//cout << assign_d_by_index(a3,fandab,9) << endl << endl;
 
 	MatrixXd l6(1,6);
 	l6 << 5,6,7,8,9,0;
@@ -241,6 +241,32 @@ int main()
 	// max of first 12 Index position coefficients of mbase
 	cout << MatrixXd::NullaryExpr(12, 1, [&](Index i) {
 		return mbase(i);
-	}).maxCoeff() << endl;
+	}).maxCoeff() << endl << endl;
+
+	// matrix of xyz positions, here 5 positions
+	MatrixXd mpos(3,5);
+	mpos << 3,6,8,2,3,	// x
+			1,4,9,4,7,	// y
+			2,7,9,2,6;	// z
+	cout << mpos << endl << endl;
+	// distance from origin
+	MatrixXd mdist = mpos.array().pow(2).colwise().sum().sqrt();
+	cout << mdist << endl << endl;
+	// get indices of sorted distances
+	RowVectorXi sorted_idxs;
+	sorted_idxs.setLinSpaced(mdist.size(), 0, mdist.size()-1);
+	sort(sorted_idxs.data(), sorted_idxs.data()+sorted_idxs.size(), [&](int i, int j) { return mdist(i) < mdist(j); } );
+	cout << sorted_idxs << endl << endl;
+	MatrixXd mpos2 = mpos;
+	mpos = mpos2(all, sorted_idxs);
+	cout << mpos << endl << endl;
+
+
+	MatrixXd rtmp = MatrixXd::Ones(3,6);
+	rtmp.topLeftCorner(rtmp.rows(), 3) = rtmp(all,seq(0,2)) * 2 * 3;
+	rtmp.col(3).array() = 3;
+	rtmp.col(4) = rtmp.col(4).array() + 7;
+	rtmp.col(5).setZero();
+	cout << rtmp << endl;
 
 }

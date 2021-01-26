@@ -140,14 +140,6 @@ MatrixXd index(const MatrixXd& m, const MatrixXi& I) {
 	return out;
 }
 
-// Assign a double value to the indices of m specified in the matrix I
-MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s) {
-	for(int i = 0; i < I.size(); ++i) {
-		m(I(i)) = s;
-	}
-	return m;
-}
-
 // Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ... }), inclusive
 MatrixXd vseq(int val0, int valn) {
 	RowVectorXd rvxd;
@@ -161,8 +153,9 @@ MatrixXi sort(const MatrixXd& c) {
 	for(int i = 0; i < c.size(); ++i) {
 		idxs(i) = i;
 	}
-	sort(idxs.data(), idxs.data()+idxs.size(),[&](int i, int j)
-          { return c(i) < c(j);});
+	sort(idxs.data(), idxs.data()+idxs.size(),[&](int i, int j) {
+		return c(i) < c(j);
+	});
 	return idxs;
 }
 
@@ -192,6 +185,10 @@ sph_sim::sph_sim() {
 	// Setup SPH properties
 	init_prop();
 	compute_hij();
+	kernel_type();
+
+	// Initialize positions and velocities
+	init_states();
 }
 sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) : param(param), group_conf(group_conf), t0(t0) {
 	// Setup SPH properties
@@ -430,11 +427,17 @@ void sph_sim::kernel_type() {
 	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
 	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() ); // NOTE: error here
-	assign_d_by_index(prop.kernel_type, I, 1);
+	I = I.unaryExpr([&](int x) {
+		prop.kernel_type(x) = 1;
+		return x;
+	});
 	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
 	I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
-	assign_d_by_index(prop.kernel_type, I, 1);
+	I = I.unaryExpr([&](int x) {
+		prop.kernel_type(x) = 1;
+		return x;
+	});
 }
 
 // Set the initial SPH states (positions and velocities) for all particles
@@ -472,15 +475,15 @@ void sph_sim::init2d() {
 	r << vseq(0,N-1), MatrixXd::Zero(2,N);
 	int n = r.cols();
 	for(int i = 1; i < N; ++i) {	// NOTE: Check that this is
-		MatrixXd app(r.rows(), r.cols());
+		MatrixXd app(r.rows(), n);
 		if(i % 2 == 0) {
-			app << r(0,all).array()+v2(0),
-				   r(1,all).array()+v2(1),
-				   r(2,all).array()+v2(2);
+			app << r(0,seq(last-n+1,last)).array()+v2(0),
+				   r(1,seq(last-n+1,last)).array()+v2(1),
+				   r(2,seq(last-n+1,last)).array()+v2(2);
 		} else {
-			app << r(0,all).array()+v2(0)-v1(0),
-				   r(1,all).array()+v2(1)-v1(1),
-				   r(2,all).array()+v2(2)-v1(2);
+			app << r(0,seq(last-n+1,last)).array()+v2(0)-v1(0),
+				   r(1,seq(last-n+1,last)).array()+v2(1)-v1(1),
+				   r(2,seq(last-n+1,last)).array()+v2(2)-v1(2);
 		}
 		r = append_right(r, app);
 	}
@@ -490,38 +493,40 @@ void sph_sim::init2d() {
 
 	// Shift to origin
 	MatrixXd ave = r.rowwise().mean();
-	r(0,all) = r(0,all).array()-ave(0);
-	r(1,all) = r(0,all).array()-ave(1);
-	r(2,all) = r(2,all).array()*0;
+	r.row(0) = r.row(0).array()-ave(0);
+	r.row(1) = r.row(1).array()-ave(1);
+	r.row(2).setZero();
 
 	// Sort r by distance from the origin
 	// r is a 3xN matrix, with x y z for the rows
-	MatrixXd d = r.array().pow(2).rowwise().sum().sqrt();
-	MatrixXi I = sort(d);
-	for(int i = 0; i < r.rows(); ++i) {
-		r(i,all) = index(r(i,all), I);
-	}
+	MatrixXd d = r.array().pow(2).colwise().sum().sqrt();
+	RowVectorXi I;
+	I.setLinSpaced(d.size(), 0, d.size()-1);
+	sort(I.data(), I.data()+I.size(), [&](int i, int j) { return d(i) < d(j); } );
+	MatrixXd temp = r;
+	r = temp(all, I);
+
 
 	// Shift to origin
-	ave = r(all,0);
-	r(0,all) = r(0,all).array()-ave(0);
-	r(1,all) = r(0,all).array()-ave(1);
-	r(2,all) = r(2,all).array()*0;
+	ave = r.col(0);
+	r.row(0) = r.row(0).array()-ave(0);
+	r.row(1) = r.row(1).array()-ave(1);
+	r.row(2).setZero();
 
 	// Sort r by distance from the origin
-	d = r.array().pow(2).rowwise().sum().sqrt();
-	I = sort(d);
-	for(int i = 0; i < r.rows(); ++i) {
-		r(i,all) = index(r(i,all), I);
-	}
+	d = r.array().pow(2).colwise().sum().sqrt();
+	I.setLinSpaced(d.size(), 0, d.size()-1);
+	sort(I.data(), I.data()+I.size(), [&](int i, int j) { return d(i) < d(j); } );
+	temp = r;
+	r = temp(all, I);
 
 	// Shift to origin
-	r(0,all) = r(0,all).array()-r(0,0);
-	r(1,all) = r(0,all).array()-r(0,1);
-	r(2,all) = r(2,all).array()*0;
+	r.row(0) = r.row(0).array()-r(0,0);
+	r.row(1) = r.row(1).array()-r(0,1);
+	r.row(2).setZero();
 
-	r = r.transpose();
-	states.resize(0,0);
+	r.transposeInPlace();
+	states.resize(0,6);
 
 	// Set the initial positions
 	for(int i = 0; i < group_conf.veh_init.x.size(); ++i) {
@@ -543,26 +548,24 @@ void sph_sim::init2d() {
 		double vy = group_conf.veh_init.v(i);
 		double vz = 0;
 
-		MatrixXd rtmp = r(all,seqN(1,3)) * 2 * group_conf.veh_h(i);
-		for(auto row : rtmp.rowwise()) {
-			row(3) = vx;
-			row(4) = vy;
-			row(5) = 0;
-		}
+		MatrixXd rtmp = MatrixXd::Zero(r.rows(), 6);
+		rtmp.topLeftCorner(r.rows(),3) = r(all,seq(0,2)) * 2 * group_conf.veh_h(i);
+		rtmp.col(3).setConstant(vx);
+		rtmp.col(4).setConstant(vy);
+		rtmp.col(5).setZero();
 		
 		MatrixXd rn = rtmp(seqN(0,n),all);
 
-		double xave = rn(all,0).mean();
-		double yave = rn(all,1).mean();
+		double xave = rn.col(0).mean();
+		double yave = rn.col(1).mean();
 		double zave = 0;
 
-		rn(all,0) = rn(all,0).array()-xave+xmid;
-		rn(all,1) = rn(all,1).array()-yave+xmid;
-		rn(all,2) = rn(all,2)*0;
+		rn.col(0) = rn.col(0).array()-xave+xmid;
+		rn.col(1) = rn.col(1).array()-yave+xmid;
+		rn.col(2).setZero();
 
 		
-		states = MatrixXd(rn.rows()+states.rows(), rn.cols()); // NOTE: check this
-		states << states, rn;
+		states = append_down(states, rn);
 
 		if(one_loop) {
 			break;

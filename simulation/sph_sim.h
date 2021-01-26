@@ -18,14 +18,14 @@ double kernel(double r, double h, int type);
 double kernel_grad(double r, double h, int type);
 MatrixXi find(const MatrixXd& A);
 MatrixXd index(const MatrixXd& m, const MatrixXi& I);
-MatrixXd assign_d_by_index(MatrixXd& m, const MatrixXi& I, const double& s);
 MatrixXd vseq(int val0, int val_last);
 MatrixXi sort(const MatrixXd& c);
 MatrixXd append_right(const MatrixXd& m, const MatrixXd& app);
 MatrixXd append_down(const MatrixXd& m, const MatrixXd& app);
 
 class sph_sim {
-private:
+//private:
+public:
 	// Loiter circle x,y,z, R
 	MatrixXd lx;
 	MatrixXd lR;
@@ -115,7 +115,7 @@ private:
 	MatrixXd sph_compute_rates(const MatrixXd& DvDt);
 
 	
-public:
+//public:
 	// Class constructor
 	// param		structure containing the SPH parameters
 	// group_conf	structure containing the SPH group configuration
