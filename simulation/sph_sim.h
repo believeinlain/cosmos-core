@@ -24,8 +24,7 @@ MatrixXd append_right(const MatrixXd& m, const MatrixXd& app);
 MatrixXd append_down(const MatrixXd& m, const MatrixXd& app);
 
 class sph_sim {
-//private:
-public:
+private:
 	// Loiter circle x,y,z, R
 	MatrixXd lx;
 	MatrixXd lR;
@@ -115,13 +114,77 @@ public:
 	MatrixXd sph_compute_rates(const MatrixXd& DvDt);
 
 	
-//public:
+public:
 	// Class constructor
 	// param		structure containing the SPH parameters
 	// group_conf	structure containing the SPH group configuration
 	// t0			option, if t0 is not given it is set to 0
 	sph_sim();
 	sph_sim(param_struct param, group_conf_struct group_conf, double t0 = 0);
+
+	// GETTERS
+	// Return the current time in the SPH simulation
+	double get_time();
+	// Return the initial time for the SPH simulation
+	double get_initial_time();
+	// Return the time step to be used for the SPH simulation
+	double get_dt();
+
+	// Return a matrix containing the [x y z] positions and [u v w] velocities of all SPH particles.
+	// Each particle is stored in one row:
+	//			[ x0 y0 z0 u0 v0 w0 ]
+	// states = [ x1 y1 z1 u1 v1 w1 ]
+	//			[		 ...		]
+	MatrixXd get_states();
+
+	// Return the total number of particles in the simulation
+	int get_npart();
+	// Return the number of vehicles in the simulation
+	int get_nveh();
+	// Return the number of obstacles in the simulation
+	int get_nobs();
+	// Return the number of reduced density (attractor) particles in the simulation
+	int get_nrd();
+
+	// Return a column vector containing x/y/z positions or u/v/w velocities of all the SPH particles
+	MatrixXd get_x();
+	MatrixXd get_y();
+	MatrixXd get_z();
+	MatrixXd get_u();
+	MatrixXd get_v();
+	MatrixXd get_w();
+
+	// Returns a prop_struct containing all the properties of each SPH particle in the simulation
+	// Members of prop_struct:
+	// MatrixXd vmin				Minimum velocity constraint
+	// MatrixXd vmax				Maximum velocity constraint
+	// MatrixXd turning_radius		Turning radius constraint
+	// MatrixXd amax				Maximum acceleration constraint
+	// MatrixXd h					Kernel width
+	// MatrixXd m					Mass
+	// MatrixXd mu					Viscosity
+	// MatrixXd K					Bulk modulus
+	// MatrixXd group				Group number
+	// MatrixXd particle_type		Particle type (veh, obs, or rd)
+	// MatrixXd hij					h_ij matrix
+	// MatrixXd kernel_type			kernel type
+	prop_struct get_prop();
+
+	// Returns a param_struct containing all the parameters used in the SPH simulation
+	// Members of param_struct:
+	// int param.ndim				dimension of the simulation (2 or 3)
+	// double param.gain.sph		gain coefficient for the SPH forces
+	// double param.gain.ext		gain coefficient for the external force
+	// double param.gain.drag		gain coefficient for the drag force
+	// double param.accel.veh		scaling constant for SPH vehicle forces
+	// double param.accel.obs		scaling constant for SPH obstacle forces
+	// double param.accel.rd		scaling constant for SPH attractor forces
+	// double param.Re				Reynolds number
+	// double param.dt				Time step
+	param_struct get_param();
+
+	// Return a group_conf_struct containing the group configuration
+	group_conf_struct get_group_conf();
 
 };
 

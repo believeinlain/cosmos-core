@@ -884,6 +884,106 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	return rates;
 }
 
+// =============================================================
+// ========================== GETTERS ==========================
+// =============================================================
+// Return the current time in the SPH simulation
+double sph_sim::get_time() {
+	return t;
+}
+// Return the initial time for the SPH simulation
+double sph_sim::get_initial_time() {
+	return t0;
+}
+// Return the time step to be used for the SPH simulation
+double sph_sim::get_dt() {
+	return param.dt;
+}
+
+// Return a matrix containing the [x y z] positions and [u v w] velocities of all SPH particles.
+// Each particle is stored in one row:
+//			[ x0 y0 z0 u0 v0 w0 ]
+// states = [ x1 y1 z1 u1 v1 w1 ]
+//			[		 ...		]
+MatrixXd sph_sim::get_states() {
+	return states;
+}
+
+// Return the total number of particles in the simulation
+int sph_sim::get_npart() {
+	return npart;
+}
+// Return the number of vehicles in the simulation
+int sph_sim::get_nveh() {
+	return nveh;
+}
+// Return the number of obstacles in the simulation
+int sph_sim::get_nobs() {
+	return nobs;
+}
+// Return the number of reduced density (attractor) particles in the simulation
+int sph_sim::get_nrd() {
+	return nrd;
+}
+
+// Return a column vector containing x/y/z positions or u/v/w velocities of all the SPH particles
+MatrixXd sph_sim::get_x() {
+	return states.col(0);
+}
+MatrixXd sph_sim::get_y() {
+	return states.col(1);
+}
+MatrixXd sph_sim::get_z() {
+	return states.col(2);
+}
+MatrixXd sph_sim::get_u() {
+	return states.col(3);
+}
+MatrixXd sph_sim::get_v() {
+	return states.col(4);
+}
+MatrixXd sph_sim::get_w() {
+	return states.col(5);
+}
+
+// Returns a prop_struct containing all the properties of each SPH particle in the simulation
+// Members of prop_struct:
+// MatrixXd vmin				Minimum velocity constraint
+// MatrixXd vmax				Maximum velocity constraint
+// MatrixXd turning_radius		Turning radius constraint
+// MatrixXd amax				Maximum acceleration constraint
+// MatrixXd h					Kernel width
+// MatrixXd m					Mass
+// MatrixXd mu					Viscosity
+// MatrixXd K					Bulk modulus
+// MatrixXd group				Group number
+// MatrixXd particle_type		Particle type (veh, obs, or rd)
+// MatrixXd hij					h_ij matrix
+// MatrixXd kernel_type			kernel type
+prop_struct sph_sim::get_prop() {
+	return prop;
+}
+
+// Returns a param_struct containing all the parameters used in the SPH simulation
+// Members of param_struct:
+// int param.ndim				dimension of the simulation (2 or 3)
+// double param.gain.sph		gain coefficient for the SPH forces
+// double param.gain.ext		gain coefficient for the external force
+// double param.gain.drag		gain coefficient for the drag force
+// double param.accel.veh		scaling constant for SPH vehicle forces
+// double param.accel.obs		scaling constant for SPH obstacle forces
+// double param.accel.rd		scaling constant for SPH attractor forces
+// double param.Re				Reynolds number
+// double param.dt				Time step
+param_struct sph_sim::get_param() {
+	return param;
+}
+
+// Return a group_conf_struct containing the group configuration
+group_conf_struct sph_sim::get_group_conf() {
+	return group_conf;
+}
+
 // TODO
 // INCOMPLETE, MODIFIED
 // contemplate the type of vseq. int or double? eh...

@@ -10,5 +10,10 @@ using namespace std;
 int main()
 {
 	sph_sim SPH;
-	cout << SPH.states << endl;
+	MatrixXd x = SPH.get_x();
+	MatrixXd y = SPH.get_y();
+	MatrixXd u = SPH.get_u();
+	MatrixXd v = SPH.get_v();
+	// Used for plotting the vehicle paths
+	double trackt = SPH.get_initial_time();
 }

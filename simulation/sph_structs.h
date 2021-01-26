@@ -55,15 +55,15 @@ struct pos_struct {
 struct prop_struct {
 	MatrixXd vmin;					// Minimum velocity constraint
 	MatrixXd vmax;					// Maximum velocity constraint
-	MatrixXd turning_radius;			// Turning radius constraint
+	MatrixXd turning_radius;		// Turning radius constraint
 	MatrixXd amax;					// Maximum acceleration constraint
 	MatrixXd h;						// Kernel width
 	MatrixXd m;						// Mass
-	MatrixXd mu;						// Viscosity
+	MatrixXd mu;					// Viscosity
 	MatrixXd K;						// Bulk modulus
 	MatrixXd group;					// Group number
-	MatrixXd particle_type;		// Particle type (veh, obs, or rd)
-	MatrixXd hij;						// h_ij matrix
+	MatrixXd particle_type;			// Particle type (veh, obs, or rd)
+	MatrixXd hij;					// h_ij matrix
 	MatrixXd kernel_type;
 };
 
