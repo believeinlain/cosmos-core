@@ -1115,46 +1115,30 @@ classdef sph_sim
                     %width of the "flat spot" in the potential field, controls the width of the
                     %loiter circle track
                     width=obj.lR(i)/4;
-                    width
 
                     %shift the center of the loiter circle
-                    II
-                    obj.states
-                    obj.lx
                     x=obj.states(II,1)-obj.lx(i,1);
                     y=obj.states(II,2)-obj.lx(i,2);
-                    x
-                    y
 
                     %attraction component
                     d = sqrt(x.^2+y.^2);
                     d = (d-obj.lR(i))/width;
                     mag = -(tanh(d)+d./cosh(d).^2);
-                    d
-                    mag
 
                     rr=sqrt(x.^2+y.^2);
                     F1x = mag.*x./rr;
                     F1y = mag.*y./rr;
-                    rr
-                    F1x
-                    F1y
 
                     %circulation component
                     theta = atan2(y,x);
                     F2x = -( exp(2)*(rr/obj.lR(i)).^2.*exp(-2*rr/obj.lR(i)) ).*sin(theta);
                     F2y = ( exp(2)*(rr/obj.lR(i)).^2.*exp(-2*rr/obj.lR(i)) ).*cos(theta);
-                    theta
-                    F2x
-                    F2y
 
                     %total force
                     %NOTE: Fx(II) is same shape as F1x and F2x, which is why the assignment works
                     w=1;
                     Fx(II) = w*F1x+(2-w)*F2x;
                     Fy(II) = w*F1y+(2-w)*F2y;
-                    Fx
-                    Fy
                     
                 else %simple attractor (no circulation force)
                     
@@ -1193,18 +1177,12 @@ classdef sph_sim
             vhat(I,1)=1;
             vhat(I,2)=0;
             vhat(I,3)=0;
-            %DvDt
-            %v
-            %vhat
-            %I
 
             
             %acceleration in the normal and tangent direction
             a_tan = ( sum(DvDt.*vhat,2)*ones(1,3) ).*vhat;
             a_norm = DvDt-a_tan;
             a_tan_mag = sqrt(sum(a_tan.^2,2));
-            %a_tan
-            %a_tan_mag
             
             
             %limit acceleration:
@@ -1228,10 +1206,6 @@ classdef sph_sim
             %limit turning radius
             a_norm_mag = sqrt(sum(a_norm.^2,2));
             I=find(a_norm_mag>vmag.^2./obj.prop.turning_radius);
-            %a_norm_mag
-            %I
-            %a_norm
-            %vmag
             if ~isempty(I)
                 a_norm(I,:) = a_norm(I,:)./(a_norm_mag(I)*ones(1,3)).*(vmag(I).^2./obj.prop.turning_radius(I)*ones(1,3));
             end
