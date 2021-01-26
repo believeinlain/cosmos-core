@@ -261,12 +261,11 @@ int main()
 	mpos = mpos2(all, sorted_idxs);
 	cout << mpos << endl << endl;
 
+	VectorXi testvxi = VectorXi::Ones(5);
+	VectorXd testvxd = sin(testvxi.cast<double>().array() / 5.0);
+	cout << testvxd << endl << endl;
 
-	MatrixXd rtmp = MatrixXd::Ones(3,6);
-	rtmp.topLeftCorner(rtmp.rows(), 3) = rtmp(all,seq(0,2)) * 2 * 3;
-	rtmp.col(3).array() = 3;
-	rtmp.col(4) = rtmp.col(4).array() + 7;
-	rtmp.col(5).setZero();
-	cout << rtmp << endl;
+	mpos(all,seq(2,last)) = MatrixXd::Ones(3,3);
+	cout << MatrixXd::Ones(3,3) + 6/2*MatrixXd::Ones(3,3) << endl << endl;
 
 }

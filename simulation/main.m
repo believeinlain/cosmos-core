@@ -64,7 +64,7 @@ SPH = sph_sim(param,group_conf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%{
+
 x=SPH.get_x(); y=SPH.get_y();
 u=SPH.get_u(); v=SPH.get_v();
 trackt=SPH.get_initial_time(); %used for plotting the vehicle paths
@@ -153,4 +153,3 @@ t0=SPH.get_time();tf=100;
 % end
     
 %end
-%}
