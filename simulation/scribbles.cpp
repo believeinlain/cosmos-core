@@ -204,6 +204,7 @@ int main()
 	});
 	cout << mbase2 << endl << endl;
 	
+	cout << "mcol" << endl;
 	MatrixXd mcol(1,5);
 	mcol << 1,2,3,4,5;
 	MatrixXi mfcol = find( (mcol.array() > 3 || mcol.array() == 2).cast<double>() );
@@ -268,4 +269,9 @@ int main()
 	mpos(all,seq(2,last)) = MatrixXd::Ones(3,3);
 	cout << MatrixXd::Ones(3,3) + 6/2*MatrixXd::Ones(3,3) << endl << endl;
 
+	MatrixXd M = ( mbase.array() < 12 ).cast<double>();
+	M(seq(2,last),seq(2,last)).diagonal() = VectorXd::Ones(3) * 5;
+	cout << M << endl << endl;
+	//M(seq(nveh,last),seq(nveh,last)) = (MatrixXd)dm;
+	cout << (MatrixXd::Ones(3,3)*3).array() * (MatrixXd::Ones(3,3) * 2).array() << endl;
 }

@@ -26,7 +26,7 @@ int main()
 
 	// Loiter circle locations
 	// Position [x y]
-	Vector2d lx;
+	MatrixXd lx(1,2);
 	lx << 28,0;
 
 	// Make sure to match group_conf.obs_init
@@ -58,11 +58,11 @@ int main()
 
 	// Reduced density targets for the vehicles
 	// First rd position [x y]
-	Matrix2d rdx;
+	MatrixXd rdx(1,2);
 	rdx << 28, 0;
 
 	// Take a SPH timestep
-	//SPH.sph_sim_step(rdx,lx,lR);
+	SPH.sph_sim_step(rdx,lx,lR);
 	
 	
 	// endfor 
