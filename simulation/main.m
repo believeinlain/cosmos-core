@@ -4,7 +4,6 @@ clear; clc
 
 
 
-
 %%%%%%%%%%%%%
 % SPH setup %
 %%%%%%%%%%%%%
@@ -80,7 +79,7 @@ t0=SPH.get_time();tf=100;
            16 2; ...
             9 -2; ...
             22 -6; ...
-    ] % SYNC WITH PARAMS
+    ]; % SYNC WITH PARAMS
       
     %loiter circle radii
     if group_conf.num_loiter>0
@@ -99,7 +98,7 @@ t0=SPH.get_time();tf=100;
     end
     
     %reduced density targets for the vehicles:
-    rdx = [28 0] ... %first rd position [x y]
+    rdx = [28 0]; ... %first rd position [x y]
     
     %take an SPH timestep
     SPH=SPH.sph_sim_step(rdx,lx,lR);
