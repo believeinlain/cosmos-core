@@ -70,7 +70,7 @@ int main()
 	u.push_back(SPH.get_u());
 	v.push_back(SPH.get_v());
 	trackt.push_back(SPH.get_time());
-	/*
+	
 	for(auto it : x) {
 		cout << it << endl << endl;
 	}
@@ -85,7 +85,7 @@ int main()
 	}
 	for(auto it : trackt) {
 		cout << it << endl << endl;
-	}*/
+	}
 	
 	
 	// endfor 
