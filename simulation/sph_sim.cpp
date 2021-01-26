@@ -707,9 +707,9 @@ MatrixXd sph_sim::sph_rhs() {
 	MatrixXd Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
 
 	MatrixXd DvDt(unit_ij.z0.rows(), 3);
-	DvDt <<	(Pi_term.array() * unit_ij.z0.array() * -1).rowwise().sum(),
-			(Pi_term.array() * unit_ij.z1.array() * -1).rowwise().sum(),
-			(Pi_term.array() * unit_ij.z2.array() * -1).rowwise().sum();
+	DvDt <<	(P_term.array() * unit_ij.z0.array() * -1).rowwise().sum(),
+			(P_term.array() * unit_ij.z1.array() * -1).rowwise().sum(),
+			(P_term.array() * unit_ij.z2.array() * -1).rowwise().sum();
 	DvDt = DvDt.array() + Pi_term.array()/param.Re;
 
 	// External forcing
@@ -738,11 +738,14 @@ MatrixXd sph_sim::sph_rhs() {
 tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 	// Create distance matrix for dij(i,j) = distance between particles i and j
 	MatrixXd dx = states(all,0) * MatrixXd::Ones(1,npart);
-	dx = dx-dx.transpose();
+	MatrixXd temp = dx.transpose();
+	dx = dx-temp;
 	MatrixXd dy = states(all,1) * MatrixXd::Ones(1,npart);
-	dy = dy-dy.transpose();
+	temp = dy.transpose();
+	dy = dy-temp;
 	MatrixXd dz = states(all,2) * MatrixXd::Ones(1,npart);
-	dz = dz-dz.transpose();
+	temp = dz.transpose();
+	dz = dz-temp;
 
 	MatrixXd dij = (dx.array().pow(2) + dy.array().pow(2) + dz.array().pow(2)).sqrt();
 
@@ -768,11 +771,9 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	
 	// Obstacle or reduced density particle
 	// NOTE: check that I'm understanding this correctly as an append down
-	M = append_down(M, MatrixXd::Zero(npart,dij.cols()));			// M(i,:) = 0
+	M = append_down(M, MatrixXd::Zero(npart-nveh,dij.cols()));			// M(i,:) = 0
 	int n = nobs + nrd;
-	DiagonalMatrix<double, Dynamic> dm(npart); // NOTE: check size of this, am I understanding this correctly
-	dm.diagonal() = VectorXd::Ones(npart);
-	M(seq(nveh,last),seq(nveh,last)) = (MatrixXd)dm;	// M(i,i) = 1
+	M(seq(nveh,last),seq(nveh,last)).diagonal() = VectorXd::Ones(n);	// M(i,i) = 1
 
 	// Reduced density particles
 	for(int i = 0; i < nrd; ++i) {
@@ -790,20 +791,10 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 // Mask I is a column vector of indices
 MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	// Reshape mask vector into matrix
-	MatrixXd mj = Mask * prop.m.transpose(); // NOTE: MODIFIED, what is the purpose of the .*(ones(obj.npart,1) ? Seems pointless
+	MatrixXd mj = Mask.array() * (MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
 	
 	// NOTE: Another sparse matrix
 	MatrixXd K = MatrixXd::Zero(npart,npart);
-	/*K = MatrixXd::NullaryExpr(MaskI.rows(), MaskI.cols(), [&](Index i) { 
-		// apply function if Mask is 1
-		if(MaskI(i)) {
-			return kernel(dij(i), prop.hij(i), prop.kernel_type(i));
-		}
-		// Mask is 0
-		else {
-			return K(i);
-		}
-	});*/ //NOTE: Wondering if just keeping the 2D array like without using find() isn't a better way of doing things
 	auto temp = MaskI.unaryExpr([&](int x) {
 		K(x) = kernel(dij(x), prop.hij(x), prop.kernel_type(x));
 		return x;
@@ -978,18 +969,18 @@ void sph_sim::constrain_vel() {
 	MatrixXd V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
 	MatrixXi I = find( (V.array() < prop.vmax.array() ).cast<double>() );
 	if(I.size() != 0 ) {
-		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
-		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
-		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped()).array() * prop.vmax(I.reshaped(),0).array();
+		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
+		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
+		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
 	}
 
 	// Min velocity constrain
 	V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
 	I = find( (V.array() < prop.vmin.array() ).cast<double>() );
 	if(I.size() != 0 ) {
-		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
-		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
-		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped()).array() * prop.vmin(I.reshaped(),0).array();
+		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped(),0).array() * prop.vmin(I.reshaped(),0).array();
+		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped(),0).array() * prop.vmin(I.reshaped(),0).array();
+		states(I.reshaped(), 5) = states(I.reshaped(), 5).array() / V(I.reshaped(),0).array() * prop.vmin(I.reshaped(),0).array();
 	}
 }
 
