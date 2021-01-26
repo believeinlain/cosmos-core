@@ -1115,32 +1115,46 @@ classdef sph_sim
                     %width of the "flat spot" in the potential field, controls the width of the
                     %loiter circle track
                     width=obj.lR(i)/4;
+                    width
 
                     %shift the center of the loiter circle
+                    II
+                    obj.states
+                    obj.lx
                     x=obj.states(II,1)-obj.lx(i,1);
                     y=obj.states(II,2)-obj.lx(i,2);
+                    x
+                    y
 
                     %attraction component
                     d = sqrt(x.^2+y.^2);
                     d = (d-obj.lR(i))/width;
                     mag = -(tanh(d)+d./cosh(d).^2);
+                    d
+                    mag
 
                     rr=sqrt(x.^2+y.^2);
                     F1x = mag.*x./rr;
                     F1y = mag.*y./rr;
-
+                    rr
+                    F1x
+                    F1y
 
                     %circulation component
                     theta = atan2(y,x);
                     F2x = -( exp(2)*(rr/obj.lR(i)).^2.*exp(-2*rr/obj.lR(i)) ).*sin(theta);
                     F2y = ( exp(2)*(rr/obj.lR(i)).^2.*exp(-2*rr/obj.lR(i)) ).*cos(theta);
-
+                    theta
+                    F2x
+                    F2y
 
                     %total force
                     %NOTE: Fx(II) is same shape as F1x and F2x, which is why the assignment works
                     w=1;
                     Fx(II) = w*F1x+(2-w)*F2x;
                     Fy(II) = w*F1y+(2-w)*F2y;
+                    Fx
+                    Fy
                     
                 else %simple attractor (no circulation force)
                     
@@ -1173,7 +1187,7 @@ classdef sph_sim
             %break acceleration into 2 components, normal and tangential:
 
             v = obj.states(:,4:6);%[states(4:6:end) states(5:6:end) states(6:6:end)];
-            %vmag = sqrt(sum(v.^2,2));
+            vmag = sqrt(sum(v.^2,2));
             vhat = v./(vmag*ones(1,3)); %unit vector in the v direction
             I=find(vmag==0);
             vhat(I,1)=1;
