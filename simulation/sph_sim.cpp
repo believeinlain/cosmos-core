@@ -954,17 +954,11 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	vhat(I.reshaped(),0).array() = 1;
 	vhat(I.reshaped(),1).array() = 0;
 	vhat(I.reshaped(),2).array() = 0;
-	cout << "DvDt\n" << DvDt << endl << endl;
-	cout << "v\n" << v << endl << endl;
-	cout << "vhat\n" << vhat << endl << endl;
-	cout << "I\n" << I << endl << endl;
 
 	// Acceleration in the normal and tangent direction
 	MatrixXd a_tan = ( ( DvDt.array() * vhat.array() ).rowwise().sum().matrix() * MatrixXd::Ones(1,3) ).array() * vhat.array();
 	MatrixXd a_norm = DvDt - a_tan;
 	MatrixXd a_tan_mag = a_tan.array().pow(2).rowwise().sum().sqrt();
-	cout << "a_tan\n" << a_tan << endl << endl;
-	cout << "a_tan_mag\n" << a_tan_mag << endl << endl;
 
 	// Limit acceleration
 	I = find( ( a_tan_mag.array() > prop.amax.array() ).cast<double>() );
@@ -986,13 +980,10 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	// Limit turning radius
 	MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
 	I = find( ( a_norm_mag.array() > vmag.array().pow(2) / prop.turning_radius.array() ).cast<double>() );
-	cout << "a_norm_mag\n" << a_norm_mag << endl << endl;
-	cout << "I\n" << I << endl << endl;
-	cout << "a_norm\n" << a_norm << endl << endl;
-	cout << "vmag\n" << vmag << endl << endl;
 	
 	if(I.size() != 0 ) {
-		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / ( a_norm_mag(I.reshaped(),0)*MatrixXd::Ones(1,3) ).array() * ( vmag(I.reshaped(),0).array().pow(2) / (prop.turning_radius(I.reshaped(),0)*MatrixXd::Ones(1,3)).array() );
+		MatrixXd temp = vmag(I.reshaped(),0).array().pow(2).array() / prop.turning_radius(I.reshaped(),0).array();
+		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / (a_norm_mag(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * (temp*MatrixXd::Ones(1,3)).array();
 	}
 
 	MatrixXd rates = append_right( states(all,seq(3,5)) , ( a_tan(all,seq(0,2)) + a_norm(all,seq(0,2)) ) );

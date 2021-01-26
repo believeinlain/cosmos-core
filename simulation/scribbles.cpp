@@ -273,5 +273,21 @@ int main()
 	M(seq(2,last),seq(2,last)).diagonal() = VectorXd::Ones(3) * 5;
 	cout << M << endl << endl;
 	//M(seq(nveh,last),seq(nveh,last)) = (MatrixXd)dm;
-	cout << (MatrixXd::Ones(3,3)*3).array() * (MatrixXd::Ones(3,3) * 2).array() << endl;
+	cout << (MatrixXd::Ones(3,3)*3).array() * (MatrixXd::Ones(3,3) * 2).array() << endl << endl;
+
+	MatrixXd a_norm(7,3);
+	a_norm << 1,2,3, 2,5,6, 3,8,9, 4,2,3, 5,5,6, 6,8,9, 7,2,3;
+	cout << a_norm << endl << endl;
+	MatrixXi I(4,1);
+	I << 0,1,2,3;
+	MatrixXd a_norm_mag = a_norm.col(1);
+	MatrixXd vmag = MatrixXd::Zero(7,1);
+	MatrixXd turning_radius = MatrixXd::Ones(7,1) * 0.1;
+	cout << a_norm(I.reshaped(), all) << endl << endl;
+	MatrixXd rhtemp = vmag(I.reshaped(),0).array().pow(2).array() /  turning_radius(I.reshaped(),0).array();
+	cout << rhtemp * MatrixXd::Ones(1,3) << endl << endl;
+	cout << a_norm(I.reshaped(),all).array() / (a_norm_mag(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * (rhtemp*MatrixXd::Ones(1,3)).array() << endl << endl;
+	//a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / ( a_norm_mag(I.reshaped(),0)*MatrixXd::Ones(1,3) ).array() * ( vmag(I.reshaped(),0).array().pow(2) / (prop.turning_radius(I.reshaped(),0)*MatrixXd::Ones(1,3)).array() );
+
+
 }
