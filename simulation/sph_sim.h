@@ -56,7 +56,7 @@ private:
 	int nveh, nobs, nrd;
 
 	// Reference density
-	const double rho0 = 1;
+	double rho0;
 
 	// Default simulation parameters
 	void init();

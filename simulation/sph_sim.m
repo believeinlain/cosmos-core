@@ -320,7 +320,7 @@ classdef sph_sim
             %Fourth order Runge-Kutta time step:
             k1 = sph_rhs(obj);
             k1(:,1:3) = k1(:,1:3)+[u v w];
-            %{
+            
             tmp=obj;
             tmp.states = tmp.states+tmp.param.dt/2*k1;
             k2 = sph_rhs(tmp);
@@ -337,21 +337,11 @@ classdef sph_sim
             k4(:,1:3) = k4(:,1:3)+[u v w];
             
             obj.states = obj.states+obj.param.dt/6*(k1+2*k2+2*k3+k4);
-            obj.t=obj.t+obj.param.dt; %increment time
-            
-            %k1
-            %k2
-            %k3
-            %k4
-            %obj.states
-            %obj.t
-            
-            
-            
+            obj.t=obj.t+obj.param.dt; %increment time          
             
             %contrain the velocity:
             obj = constrain_vel(obj);
-            %}
+            
             
         end
         

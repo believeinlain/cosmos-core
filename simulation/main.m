@@ -104,11 +104,11 @@ t0=SPH.get_time();tf=100;
     SPH=SPH.sph_sim_step(rdx,lx,lR);
     
     %keep track of vehicle paths (or at least the last 100 points)
-    x=[x SPH.get_x()];
-    y=[y SPH.get_y()];
-    u=[u SPH.get_u()];
-    v=[v SPH.get_v()];
-    trackt=[trackt SPH.get_time()];
+    x=[x SPH.get_x()]
+    y=[y SPH.get_y()]
+    u=[u SPH.get_u()]
+    v=[v SPH.get_v()]
+    trackt=[trackt SPH.get_time()]
     
     if any(isnan(x(:)))>0
         error('Something went wrong, NaN detected ins x-positions.');

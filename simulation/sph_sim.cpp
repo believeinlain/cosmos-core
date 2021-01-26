@@ -263,7 +263,7 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 	// Fourth order Runge-Kutta timestep
 	MatrixXd k1 = sph_rhs();
 	k1(all,seq(0,2)) = k1(all,seq(0,2)) + uvw;
-	/*
+	
 	sph_sim tmp = *this;
 	tmp.states = tmp.states + tmp.param.dt/2*k1;
 	MatrixXd k2 = tmp.sph_rhs();
@@ -275,27 +275,21 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 	k3(all,seq(0,2)) = k3(all,seq(0,2)) + uvw;
 
 	tmp = *this;
-	tmp.states = tmp.states + tmp.param.dt/2*k3;
+	tmp.states = tmp.states + tmp.param.dt*k3;
 	MatrixXd k4 = tmp.sph_rhs();
 	k4(all,seq(0,2)) = k4(all,seq(0,2)) + uvw;
 
 	states = states + param.dt/6*(k1 + 2*k2 + 2*k3 + k4);
 	// Increment time
-	t = t + param.dt;*/
-
-	/*cout << k1 << endl << endl;
-	cout << k2 << endl << endl;
-	cout << k3 << endl << endl;
-	cout << k4 << endl << endl;
-	cout << states << endl << endl;
-	cout << t << endl << endl;*/
+	t = t + param.dt;
 
 	// Constrain the velocity
-	//constrain_vel();
+	constrain_vel();
 }
 
 void sph_sim::init() {
 	// Initialize SPH simulation parameters
+	rho0 = 1;
 	param.ndim = 2;
 	param.gain.sph = 1.0;
 	param.gain.ext = 0.25;
@@ -729,25 +723,6 @@ MatrixXd sph_sim::sph_rhs() {
 	DvDt(all,1) = param.gain.sph * DvDt(all,1).array() + param.gain.ext * max_amax * Fy.array() - param.gain.drag * states(all,4).array();
 	DvDt(all,2) = param.gain.sph * DvDt(all,2).array() + param.gain.ext * max_amax * Fz.array() - param.gain.drag * states(all,5).array();
 
-	/*cout << "dij\n" << dij << endl << endl;
-	cout << "rij.z0\n" << rij.z0 << endl << endl;
-	cout << "rij.z1\n" << rij.z1 << endl << endl;
-	cout << "rij.z2\n" << rij.z2 << endl << endl;
-	cout << "unit_ij.z0\n" << unit_ij.z0 << endl << endl;
-	cout << "unit_ij.z1\n" << unit_ij.z1 << endl << endl;
-	cout << "unit_ij.z2\n" << unit_ij.z2 << endl << endl;
-	cout << "Mask\n" << Mask << endl << endl;
-	cout << "MaskI\n" << MaskI << endl << endl;
-	cout << "rho\n" << rho << endl << endl;
-	cout << "gradW\n" << gradW << endl << endl;
-	cout << "P\n" << P << endl << endl;
-	cout << "P_term\n" << P_term << endl << endl;
-	cout << "Pi_term\n" << Pi_term << endl << endl;
-	cout << "Fx\n" << Fx << endl << endl;
-	cout << "Fy\n" << Fy << endl << endl;
-	cout << "Fz\n" << Fz << endl << endl;
-	cout << "DvDt\n" << DvDt << endl << endl;*/
-
 	MatrixXd rhs = sph_compute_rates(DvDt);
 
 	if(param.ndim == 2) {
@@ -995,7 +970,7 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 void sph_sim::constrain_vel() {
 	// Max velocity constrain
 	MatrixXd V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
-	MatrixXi I = find( (V.array() < prop.vmax.array() ).cast<double>() );
+	MatrixXi I = find( (V.array() > prop.vmax.array() ).cast<double>() );
 	if(I.size() != 0 ) {
 		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
 		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
