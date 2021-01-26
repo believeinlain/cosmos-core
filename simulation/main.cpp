@@ -7,11 +7,7 @@
 using namespace Eigen;
 using namespace std;
 
-double myfunction (double a, double b) {
-	return a + b;
-}
 int main()
 {
 	sph_sim SPH;
-
 }
