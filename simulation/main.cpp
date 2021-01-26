@@ -12,10 +12,10 @@ int main()
 	sph_sim SPH;
 	param_struct param = SPH.get_param();
 	group_conf_struct group_conf = SPH.get_group_conf();
-	vector<MatrixXd> x { SPH.get_x() };
-	vector<MatrixXd> y { SPH.get_y() };
-	vector<MatrixXd> u { SPH.get_u() };
-	vector<MatrixXd> v { SPH.get_v() };
+	MatrixXd x = SPH.get_x();
+	MatrixXd y = SPH.get_y();
+	MatrixXd u = SPH.get_u();
+	MatrixXd v = SPH.get_v();
 	// Used for plotting the vehicle paths
 	vector<double> trackt { SPH.get_initial_time() };
 	double plotdt = 0.1;
@@ -65,26 +65,29 @@ int main()
 	SPH.sph_sim_step(rdx,lx,lR);
 
 	// Keep track of vehicle paths (or at least the last 100 points)
-	x.push_back(SPH.get_x());
-	y.push_back(SPH.get_y());
-	u.push_back(SPH.get_u());
-	v.push_back(SPH.get_v());
+	x = append_right(x, SPH.get_x());
+	y = append_right(y, SPH.get_y());
+	u = append_right(u, SPH.get_u());
+	v = append_right(v, SPH.get_v());
 	trackt.push_back(SPH.get_time());
 	
-	for(auto it : x) {
-		cout << it << endl << endl;
-	}
-	for(auto it : y) {
-		cout << it << endl << endl;
-	}
-	for(auto it : u) {
-		cout << it << endl << endl;
-	}
-	for(auto it : v) {
-		cout << it << endl << endl;
-	}
+	cout << "x:\n" << x << endl << endl;
+	cout << "y:\n" << y << endl << endl;
+	cout << "u:\n" << u << endl << endl;
+	cout << "v:\n" << v << endl << endl;
 	for(auto it : trackt) {
-		cout << it << endl << endl;
+		cout << it << " ";
+	} cout << endl << endl;
+
+	if(x.array().isNaN().any()) {
+		cout << "Something went wrong, NaN detected in x-positions.";
+		throw "Something went wrong, NaN detected in x-positions";
+	}
+
+	// Plot
+	if(SPH.get_time() >= plott - SPH.get_dt()/10) {
+		// plot_veh(1,SPH,x,y,trackt,lx, obx)
+		plott = plott + plotdt;
 	}
 	
 	
