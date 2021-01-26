@@ -825,7 +825,6 @@ classdef sph_sim
                 
             end
             
-            
         end
         
         function obj = init3d(obj)
