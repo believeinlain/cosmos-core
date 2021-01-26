@@ -10,4 +10,5 @@ using namespace std;
 int main()
 {
 	sph_sim SPH;
+	cout << SPH.states << endl;
 }

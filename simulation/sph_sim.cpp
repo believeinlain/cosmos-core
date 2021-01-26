@@ -451,8 +451,7 @@ void sph_sim::init_states() {
 	}
 
 	// Obstacles
-	// NOTE: check bounds
-	for(size_t i = 0; i < group_conf.num_obs-1; ++i) {
+	for(int i = 0; i < group_conf.num_obs; ++i) {
 		MatrixXd app(1,6);
 		app << group_conf.obs_init.x(i), group_conf.obs_init.y(i), group_conf.obs_init.z(i), 0, 0, 0;	// x,y,z, u,v,w
 		states = append_down(states, app);
