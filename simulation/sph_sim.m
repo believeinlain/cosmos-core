@@ -256,8 +256,6 @@ classdef sph_sim
                 end
             end
             
-            
-            
             %set the loiter circle positions and radii
             if (exist('lx','var') && obj.group_conf.num_loiter>0)
                 if size(lx,1)~=obj.group_conf.num_loiter
@@ -284,10 +282,6 @@ classdef sph_sim
                 end
                 
             end
-            
-            
-            
-            
             
             %assume the background velocity is changing slower than the SPH
             %timestep so just load it once
@@ -326,7 +320,7 @@ classdef sph_sim
             %Fourth order Runge-Kutta time step:
             k1 = sph_rhs(obj);
             k1(:,1:3) = k1(:,1:3)+[u v w];
-            
+            %{
             tmp=obj;
             tmp.states = tmp.states+tmp.param.dt/2*k1;
             k2 = sph_rhs(tmp);
@@ -345,17 +339,19 @@ classdef sph_sim
             obj.states = obj.states+obj.param.dt/6*(k1+2*k2+2*k3+k4);
             obj.t=obj.t+obj.param.dt; %increment time
             
-            
-            
-            
-            
+            %k1
+            %k2
+            %k3
+            %k4
+            %obj.states
+            %obj.t
             
             
             
             
             %contrain the velocity:
             obj = constrain_vel(obj);
-            
+            %}
             
         end
         
@@ -749,7 +745,7 @@ classdef sph_sim
             end
             
             % randomize slightly to avoid singularities
-            r(1:2,:) = r(1:2,:)+(rand(size(r(1:2,:)))-.5)*1e-8;
+            r(1:2,:) = r(1:2,:);%+(rand(size(r(1:2,:)))-.5)*1e-8;
             
             %shift to origin
             ave = sum(r,2)/size(r,2);
@@ -986,8 +982,21 @@ classdef sph_sim
             DvDt =   obj.param.gain.sph*squeeze(DvDt) ...
                    + obj.param.gain.ext*max(obj.prop.amax(1:obj.nveh))*[Fx Fy Fz] ...
                    - obj.param.gain.drag.*obj.states(:,4:6);
-
-
+            %dij
+            %rij
+            %unit_ij
+            %Mask
+            %MaskI
+            %rho
+            %gradW
+            %P
+            %P_term
+            %Pi_term
+            %Fx
+            %Fy
+            %Fz
+            %DvDt
+            
             rhs = obj.sph_compute_rates(DvDt);
 
 
@@ -1056,13 +1065,14 @@ classdef sph_sim
 
             K=sparse([],[],[],obj.npart,obj.npart,length(MaskI));
             K(MaskI) = obj.kernel(dij(MaskI),obj.prop.hij(MaskI),obj.prop.kernel_type(MaskI));
-
+            
             rho=full(sum( mj.*K ,2));
             
             %reduced density particles have fixed density that does not
             %consider the proximity of other particles
             I = obj.nveh+obj.nobs+1:obj.npart;
             rho(I) = obj.prop.m(I).*obj.kernel(0,obj.prop.h(I),2);
+            
 
         end
         
@@ -1163,18 +1173,24 @@ classdef sph_sim
             %break acceleration into 2 components, normal and tangential:
 
             v = obj.states(:,4:6);%[states(4:6:end) states(5:6:end) states(6:6:end)];
-            vmag = sqrt(sum(v.^2,2));
+            %vmag = sqrt(sum(v.^2,2));
             vhat = v./(vmag*ones(1,3)); %unit vector in the v direction
             I=find(vmag==0);
             vhat(I,1)=1;
             vhat(I,2)=0;
             vhat(I,3)=0;
+            %DvDt
+            %v
+            %vhat
+            %I
 
             
             %acceleration in the normal and tangent direction
             a_tan = ( sum(DvDt.*vhat,2)*ones(1,3) ).*vhat;
             a_norm = DvDt-a_tan;
             a_tan_mag = sqrt(sum(a_tan.^2,2));
+            %a_tan
+            %a_tan_mag
             
             
             %limit acceleration:
@@ -1198,6 +1214,10 @@ classdef sph_sim
             %limit turning radius
             a_norm_mag = sqrt(sum(a_norm.^2,2));
             I=find(a_norm_mag>vmag.^2./obj.prop.turning_radius);
+            %a_norm_mag
+            %I
+            %a_norm
+            %vmag
             if ~isempty(I)
                 a_norm(I,:) = a_norm(I,:)./(a_norm_mag(I)*ones(1,3)).*(vmag(I).^2./obj.prop.turning_radius(I)*ones(1,3));
             end
