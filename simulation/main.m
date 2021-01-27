@@ -69,7 +69,7 @@ u=SPH.get_u(); v=SPH.get_v();
 trackt=SPH.get_initial_time(); %used for plotting the vehicle paths
 plotdt=0.1;plott=SPH.get_time();
 t0=SPH.get_time();tf=100;
-%for t=t0:SPH.get_dt():tf-SPH.get_dt()
+for t=t0:SPH.get_dt():tf-SPH.get_dt()
     
     %loiter circle locations:
     lx = [28 0]; % loiter circle position [x y]
@@ -83,11 +83,11 @@ t0=SPH.get_time();tf=100;
       
     %loiter circle radii
     if group_conf.num_loiter>0
-        if SPH.get_time()<15
+        if SPH.get_time()<10
             lR=[5]; %loiter circle radii
         else
             %change the loiter circle radii at each time step - DISABLED
-            %%lR=[2.5+cos((SPH.get_time()-40)/2) 3-cos(SPH.get_time()-40)];
+            %lR=[2.5+cos((SPH.get_time()-40)/2) 3-cos(SPH.get_time()-40)];
 
             %update the SPH properties
             group_conf.veh_h=2*lR.*sin(pi./group_conf.num_veh);
@@ -104,11 +104,11 @@ t0=SPH.get_time();tf=100;
     SPH=SPH.sph_sim_step(rdx,lx,lR);
     
     %keep track of vehicle paths (or at least the last 100 points)
-    x=[x SPH.get_x()]
-    y=[y SPH.get_y()]
-    u=[u SPH.get_u()]
-    v=[v SPH.get_v()]
-    trackt=[trackt SPH.get_time()]
+    x=[x SPH.get_x()];
+    y=[y SPH.get_y()];
+    u=[u SPH.get_u()];
+    v=[v SPH.get_v()];
+    trackt=[trackt SPH.get_time()];
     
     if any(isnan(x(:)))>0
         error('Something went wrong, NaN detected ins x-positions.');
@@ -151,4 +151,4 @@ t0=SPH.get_time();tf=100;
 % export_fig(sprintf('images/img%04d.jpg',i/4+1),'-q100','-transparent','-r90','-nocrop')
 % end
     
-%end
+end
