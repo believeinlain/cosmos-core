@@ -3,9 +3,14 @@
 #include <vector>
 #include "Eigen/Dense"
 #include "sph_sim.h"
+#include "gnuplot_i.hpp" //Gnuplot class handles POSIX-Pipe-communikation with Gnuplot
  
 using namespace Eigen;
 using namespace std;
+
+void plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx);
+void wait_for_key(); 	// Programm halts until keypress
+Gnuplot g1;
 
 int main()
 {
@@ -22,6 +27,8 @@ int main()
 	double plott = SPH.get_time();
 	double t0 = SPH.get_time();
 	double tf = 100;
+	g1.showonscreen(); // window output
+
 	// for ...
 
 	// Loiter circle locations
@@ -71,13 +78,13 @@ int main()
 	v = append_right(v, SPH.get_v());
 	trackt.push_back(SPH.get_time());
 	
-	cout << "x:\n" << x << endl << endl;
+	/*cout << "x:\n" << x << endl << endl;
 	cout << "y:\n" << y << endl << endl;
 	cout << "u:\n" << u << endl << endl;
 	cout << "v:\n" << v << endl << endl;
 	for(auto it : trackt) {
 		cout << it << " ";
-	} cout << endl << endl;
+	} cout << endl << endl;*/
 
 	if(x.array().isNaN().any()) {
 		cout << "Something went wrong, NaN detected in x-positions.";
@@ -86,10 +93,45 @@ int main()
 
 	// Plot
 	if(SPH.get_time() >= plott - SPH.get_dt()/10) {
-		// plot_veh(1,SPH,x,y,trackt,lx, obx)
+		plot_veh(SPH,x,y,trackt,lx, obx);
 		plott = plott + plotdt;
 	}
 	
-	
 	// endfor 
+}
+
+void plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx) {
+	VectorXd v1 = x(all,last);
+	vector<double> vx;
+	vx.resize(v1.size());
+	VectorXd::Map(&vx[0], v1.size()) = v1;
+
+	v1 = y(all,last);
+	vector<double> vy;
+	vy.resize(v1.size());
+	VectorXd::Map(&vy[0], v1.size()) = v1;
+
+	g1.reset_plot();
+	cout << endl << endl << "*** user-defined lists of points (x,y)" << endl;
+	g1.set_grid();
+	g1.set_style("points").plot_xy(vx,vy,"user-defined points 2d");
+}
+
+
+
+void wait_for_key ()
+{
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)  // every keypress registered, also arrow keys
+    cout << endl << "Press any key to continue..." << endl;
+
+    FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+    _getch();
+#elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+    cout << endl << "Press ENTER to continue..." << endl;
+
+    std::cin.clear();
+    std::cin.ignore(std::cin.rdbuf()->in_avail());
+    std::cin.get();
+#endif
+    return;
 }
