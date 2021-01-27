@@ -48,8 +48,9 @@ void simulation::start_simulation() {
 				lR.resize(1,1);
 				lR << 5;
 			} else {
-				// Change the loiter circle radii at each time step - DISABLED
-				// lR= ... this is disabled
+				// Change the loiter circle radii after 15 seconds
+				lR.resize(1,1);
+				lR << 2;
 
 				// Update the SPH properties
 				group_conf.veh_h = 2 * lR.array() * sin(group_conf.num_veh.cast<double>().array() / M_PI);

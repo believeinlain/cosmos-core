@@ -350,25 +350,26 @@ void sph_sim::init() {
 	group_conf.loiter_group.resize(1); group_conf.loiter_group << 0;
 }
 
-void sph_sim::resize_prop(int rows) {
-	prop.vmin.conservativeResize(prop.vmin.size() + rows, 1);
-	prop.vmax.conservativeResize(prop.vmax.size() + rows, 1);
-	prop.turning_radius.conservativeResize(prop.turning_radius.size() + rows, 1);
-	prop.amax.conservativeResize(prop.amax.size() + rows, 1);
-	prop.h.conservativeResize(prop.h.size() + rows, 1);
-	prop.m.conservativeResize(prop.m.size() + rows, 1);
-	prop.mu.conservativeResize(prop.mu.size() + rows, 1);
-	prop.K.conservativeResize(prop.K.size() + rows, 1);
-	prop.group.conservativeResize(prop.group.size() + rows, 1);
-	prop.particle_type.conservativeResize(prop.particle_type.size() + rows, 1);
+void sph_sim::resize_prop() {
+	int N = group_conf.num_veh.sum() + group_conf.num_obs + group_conf.num_rd;
+	prop.vmin.resize(N, 1);
+	prop.vmax.resize(N, 1);
+	prop.turning_radius.resize(N, 1);
+	prop.amax.resize(N, 1);
+	prop.h.resize(N, 1);
+	prop.m.resize(N, 1);
+	prop.mu.resize(N, 1);
+	prop.K.resize(N, 1);
+	prop.group.resize(N, 1);
+	prop.particle_type.resize(N, 1);
 }
 
 void sph_sim::init_prop() {
 	int N = 0;
+	resize_prop();
 
 	// Initialize vehicles
 	for(int i = 0; i < group_conf.num_veh.size(); ++i) {
-		resize_prop(group_conf.num_veh(i));
 		for(int j = 0; j < group_conf.num_veh(i); ++j) {
 			// Motion constraints
 			prop.vmin(N,0) = group_conf.veh_limits.vmin(i);
@@ -414,7 +415,6 @@ void sph_sim::init_prop() {
 	nveh = N;
 
 	// Obstacles
-	resize_prop(group_conf.num_obs);
 	for(int i = 0; i < group_conf.num_obs; ++i) {
 		// Motion constraints
 		prop.vmin(N,0) = 0;
@@ -448,7 +448,6 @@ void sph_sim::init_prop() {
 	nobs = group_conf.num_obs;
 
 	// Reduced density particles
-	resize_prop(group_conf.num_rd);
 	for(int i = 0; i < group_conf.num_rd; ++i) {
 		// Motion constraints
 		prop.vmin(N,0) = 0;
