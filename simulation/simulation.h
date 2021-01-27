@@ -6,7 +6,7 @@
 #include "gnuplot_i.hpp"
 #include "sph_sim.h"
 
-void wait_for_key();
+bool wait_for_key();
 
 class simulation {
 private:

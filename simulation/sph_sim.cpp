@@ -575,7 +575,7 @@ void sph_sim::init2d() {
 	}
 
 	// Randomize slightly to avoid singularities
-	//r(seq(0,1),all) = r(seq(0,1),all).array() + MatrixXd::Random(2,r.cols()).array()/2*1e-8;
+	r(seq(0,1),all) = r(seq(0,1),all).array() + MatrixXd::Random(2,r.cols()).array()/2*1e-8;
 
 	// Shift to origin
 	MatrixXd ave = r.rowwise().mean();
@@ -791,6 +791,7 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 // Mask I is a column vector of indices
 MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	// Reshape mask vector into matrix
+	// NOTE: crashes here after a while because prop.m reaches 40x1. Mask is 20x20, npart is 20
 	MatrixXd mj = Mask.array() * (MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
 	
 	// NOTE: Another sparse matrix

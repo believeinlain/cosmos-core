@@ -136,7 +136,7 @@ Gnuplot::~Gnuplot() noexcept(false)
 //
 Gnuplot& Gnuplot::reset_plot()
 {
-//  remove_tmpfiles();
+  remove_tmpfiles();
 
     nplots = 0;
 
