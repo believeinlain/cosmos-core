@@ -14,7 +14,7 @@ void simulation::init_simulation() {
 
 	// Used for plotting the vehicle paths
 	trackt.push_back(SPH.get_initial_time());
-	plotdt = 0.1;
+	plotdt = 0.1;	// replot every 100 milliseconds
 	plott = SPH.get_time();
 	t0 = SPH.get_time();
 	tf = 50;	// time final
@@ -25,12 +25,13 @@ void simulation::init_simulation() {
 }
 
 void simulation::start_simulation() {
-	g1.showonscreen(); // window output
-
+	GnuplotPipe gp;
 	for(double t = t0; t < tf; t += SPH.get_dt()) {
 		// Loiter circle locations
 		// Position [x y]
 		lx << 28,0;
+		// Slow down the simulation a bit
+		this_thread::sleep_for (chrono::milliseconds(5));
 
 		// Make sure to match group_conf.obs_init
 		obx << 	 7, 0,
@@ -41,6 +42,7 @@ void simulation::start_simulation() {
 		
 		// Loiter circle radii
 		if(group_conf.num_loiter > 0) {
+			// arbitrary value 15 chosen for time value, when to update SPH properties
 			if(SPH.get_time() < 15) {
 				// Loiter circle radii
 				lR.resize(1,1);
@@ -51,7 +53,7 @@ void simulation::start_simulation() {
 
 				// Update the SPH properties
 				group_conf.veh_h = 2 * lR.array() * sin(group_conf.num_veh.cast<double>().array() / M_PI);
-				SPH.sph_update_properties(param, group_conf);
+				SPH.sph_update_properties(param, group_conf); // This gets called on the crash
 			}
 		} else {
 			lR.resize(0,0);
@@ -87,21 +89,33 @@ void simulation::start_simulation() {
 
 }
 
-void simulation::plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx) {
-	VectorXd temp = x(all,last);
-	vector<double> vx;
-	vx.resize(temp.size());
-	VectorXd::Map(&vx[0], temp.size()) = temp;
-
-	temp = y(all,last);
-	vector<double> vy;
-	vy.resize(temp.size());
-	VectorXd::Map(&vy[0], temp.size()) = temp;
-
-	g1.reset_plot();
-	g1.set_grid();
-	g1.set_style("points").plot_xy(vx,vy,"");
+string gnuvec(const MatrixXd& mat, const string& varname) {
+	ostringstream o;
+	o << varname << "=\"";
+	for(auto it : mat(all,last))
+		o << it << " ";
+	o << "\"";
+	return o.str();
 }
+
+void simulation::plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx) {
+	ostringstream o;
+	//o << "plot " //<< "(0+word(X,int(t))),(0+word(Y,int(t)))" << ", "			// line ver
+	//			 << "(0+word(X,int(t))),(0+word(Y,int(t))) with points";	// point ver
+	//gp.sendLine("HI",true);
+	
+	gp.sendLine(gnuvec(x, "X"), true);
+	gp.sendLine(gnuvec(y, "Y"), true);
+	gp.sendLine("set parametric", true);
+	gp.sendLine("set trange [1:words(X)]; set samples words(X)", true);
+	gp.sendLine("unset key", true);			// disable legend
+	gp.sendLine("set xrange [-10:40]; set yrange [-10:10]", true);	// set x/y-axis ranges
+	//gp.sendLine("plot (0+word(X,int(t))),(0+word(Y,int(t)))", true);
+	gp.sendLine("plot (0+word(X,int(t))),(0+word(Y,int(t))) with points", true);
+	gp.sendEndOfData();
+}
+
+
 
 bool wait_for_key () {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)  // every keypress registered, also arrow keys

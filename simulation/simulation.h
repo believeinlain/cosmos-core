@@ -2,8 +2,10 @@
 #define SIMQULATION_H
 
 #include <iostream>
+#include <chrono>         // std::chrono::seconds
+#include <thread>         // std::this_thread::sleep_for
 #include <vector>
-#include "gnuplot_i.hpp"
+#include "gnuplot.h"
 #include "sph_sim.h"
 
 bool wait_for_key();
@@ -24,7 +26,7 @@ private:
 	double t0;
 	double tf;
 	// Gnuplot window
-	Gnuplot g1;
+	GnuplotPipe gp;
 
 	// for ...
 

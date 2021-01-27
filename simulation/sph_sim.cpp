@@ -265,12 +265,12 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 	k1(all,seq(0,2)) = k1(all,seq(0,2)) + uvw;
 	
 	sph_sim tmp = *this;
-	tmp.states = tmp.states + tmp.param.dt/2*k1;
+	tmp.states = tmp.states + tmp.param.dt/2.0*k1;
 	MatrixXd k2 = tmp.sph_rhs();
 	k2(all,seq(0,2)) = k2(all,seq(0,2)) + uvw;
 
 	tmp = *this;
-	tmp.states = tmp.states + tmp.param.dt/2*k2;
+	tmp.states = tmp.states + tmp.param.dt/2.0*k2;
 	MatrixXd k3 = tmp.sph_rhs();
 	k3(all,seq(0,2)) = k3(all,seq(0,2)) + uvw;
 
@@ -279,7 +279,7 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 	MatrixXd k4 = tmp.sph_rhs();
 	k4(all,seq(0,2)) = k4(all,seq(0,2)) + uvw;
 
-	states = states + param.dt/6*(k1 + 2*k2 + 2*k3 + k4);
+	states = states + param.dt/6.0*(k1 + 2.0*k2 + 2.0*k3 + k4);
 	// Increment time
 	t = t + param.dt;
 
@@ -291,6 +291,7 @@ void sph_sim::init() {
 	// Initialize SPH simulation parameters
 	rho0 = 1;
 	t0 = 0;
+	t = t0;
 	param.ndim = 2;
 	param.gain.sph = 1.0;
 	param.gain.ext = 0.25;
