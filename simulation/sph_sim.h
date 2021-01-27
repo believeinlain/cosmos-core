@@ -65,7 +65,7 @@ private:
 	void init_prop();
 
 	// Resize vectors of prop, adds n more rows. For internal use
-	void resize_prop(int rows);
+	void resize_prop();
 
 	// Compute h_ij matrix
 	void compute_hij();
