@@ -290,6 +290,7 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 void sph_sim::init() {
 	// Initialize SPH simulation parameters
 	rho0 = 1;
+	t0 = 0;
 	param.ndim = 2;
 	param.gain.sph = 1.0;
 	param.gain.ext = 0.25;
