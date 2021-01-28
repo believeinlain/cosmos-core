@@ -20,11 +20,18 @@ void simulation::init_simulation() {
 	plotdt = 0.1;	// replot every 100 milliseconds
 	plott = SPH.get_time();
 	t0 = SPH.get_time();
-	tf = 30;	// time final, when to stop simulation
+	tf = 100;	// time final, when to stop simulation
 
 	lx.resize(1,2);
+	lx << 28,0;
 	rdx.resize(1,2);
+	// Make sure to match group_conf.obs_init
 	obx.resize(5,2);
+	obx << 	 7, 0,
+			12, 4,
+			16, 2,
+			 9,-2,
+			22,-6;
 }
 
 void simulation::start_simulation() {
@@ -34,16 +41,11 @@ void simulation::start_simulation() {
 	for(double t = t0; t < tf; t += SPH.get_dt()) {
 		// Loiter circle locations
 		// Position [x y]
-		lx << 28,0;
 		// Slow down the simulation a bit
-		this_thread::sleep_for (chrono::milliseconds(5));
+		this_thread::sleep_for (chrono::milliseconds(4));
 
-		// Make sure to match group_conf.obs_init
-		obx << 	 7, 0,
-				12, 4,
-				16, 2,
-				 9,-2,
-				22,-6;
+		
+		
 		
 		// Loiter circle radii
 		if(group_conf.num_loiter > 0) {
@@ -52,14 +54,31 @@ void simulation::start_simulation() {
 				// Loiter circle radii
 				lR.resize(1,1);
 				lR << 5;
-			} else {
+			} else if(SPH.get_time() < 25) {
 				// Change the loiter circle radii after 15 seconds
 				lR.resize(1,1);
 				lR << 2;
 
 				// Update the SPH properties
 				group_conf.veh_h = 2 * lR.array() * sin(group_conf.num_veh.cast<double>().array() / M_PI);
-				SPH.sph_update_properties(param, group_conf); // This gets called on the crash
+				SPH.sph_update_properties(param, group_conf);
+			} else if(SPH.get_time() < 35) {
+				// Change the loiter circle radii after 25 seconds
+				lR.resize(1,1);
+				lR << 9.5;
+
+				// Update the SPH properties
+				group_conf.veh_h = 2 * lR.array() * sin(group_conf.num_veh.cast<double>().array() / M_PI);
+				SPH.sph_update_properties(param, group_conf);
+			} else if(SPH.get_time() < 90) {
+				// Change the loiter circle location after 35 seconds
+				lx(0) = lx(0) - 0.005;
+
+				// Update the SPH properties
+				group_conf.veh_h = 2 * lR.array() * sin(group_conf.num_veh.cast<double>().array() / M_PI);
+				SPH.sph_update_properties(param, group_conf);
+			} else {
+
 			}
 		} else {
 			lR.resize(0,0);
@@ -67,7 +86,7 @@ void simulation::start_simulation() {
 
 		// Reduced density targets for the vehicles
 		// First rd position [x y]
-		rdx << 28, 0;
+		rdx << 28, 0; // NOTE: this doesn't need to change?
 
 		// Take a SPH timestep
 		SPH.sph_sim_step(rdx,lx,lR);
