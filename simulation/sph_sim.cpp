@@ -106,19 +106,24 @@ double kernel_grad(double r, double h, int type) {
 	return dWdr;
 }
 
-// Return vector of indices of nonzero elements. As row if A is a row vector, as a column vector otherwise
-MatrixXi find(const MatrixXd& A) {
-	MatrixXi idxs(1,A.size());
+/// Find indices of nonzero elements of a matrix
+/**
+@param	m		Matrix to find indices of.
+
+@return idxs	Vector of indices of nonzero elements. As row if A is a row vector, as a column vector otherwise.
+*/
+MatrixXi find(const MatrixXd& m) {
+	MatrixXi idxs(1,m.size());
 	int size = 0;
-	for(Index i=0; i<A.size(); ++i) {
-		if(A(i)) {
+	for(Index i=0; i<m.size(); ++i) {
+		if(m(i)) {
 			idxs(0,size) = i;
 			size++;
 		}
 	}
 	if(size > 0) {
 		idxs.conservativeResize(1,size);
-		if(A.rows() > 1) {
+		if(m.rows() > 1) {
 			idxs.transposeInPlace();
 		}
 	} else {
@@ -128,38 +133,47 @@ MatrixXi find(const MatrixXd& A) {
 	return idxs;
 }
 
-// Return a matrix whose elements are those indices of m specified by I. Necessarily, returned matrix will be the same shape as I
-// Iow: indexing the elements of m with another matrix I
-MatrixXd index(const MatrixXd& m, const MatrixXi& I) {
-	MatrixXd out(I.rows(),I.cols());
+/// Generate a row vector with sequentially increasing values
+/**
+Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ...}), inclusive.
 
-	for(int i = 0; i < I.size(); ++i) {
-		out(i) = m(I(i));
-	}
+@param	val0	int value to start at
+@param	valn	int value to end at. Inclusive.
 
-	return out;
-}
-
-// Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ... }), inclusive
+@return rseq	Row vector
+*/
 MatrixXd vseq(int val0, int valn) {
-	RowVectorXd rvxd;
-	rvxd.setLinSpaced(valn-val0+1, val0, valn);
-	return rvxd.matrix();
+	RowVectorXd rseq;
+	rseq.setLinSpaced(valn-val0+1, val0, valn);
+	return rseq.matrix();
 }
 
-// Return sorted indices of c, in ascending order
-MatrixXi sort(const MatrixXd& c) {
-	MatrixXi idxs(1,c.size());
-	for(int i = 0; i < c.size(); ++i) {
-		idxs(i) = i;
+/// Get sorted indices of a matrix in ascending order
+/**
+@param	m		Matrix to find sorted indices for
+
+@return sorted	Row vector of sorted indices
+*/
+MatrixXi sort(const MatrixXd& m) {
+	MatrixXi sorted(1,m.size());
+	for(int i = 0; i < m.size(); ++i) {
+		sorted(i) = i;
 	}
-	sort(idxs.data(), idxs.data()+idxs.size(),[&](int i, int j) {
-		return c(i) < c(j);
+	sort(sorted.data(), sorted.data()+sorted.size(),[&](int i, int j) {
+		return m(i) < m(j);
 	});
-	return idxs;
+	return sorted;
 }
 
-// Append another matrix app to matrix m, right or down
+/// Append matrices together horizontally
+/**
+Append a matrix app to the right of matrix m. Note that the number of rows must match. Argument matrices are not modified.
+
+@param	m		Matrix to find append onto
+@param	app		Matrix to append
+
+@return out		Appended matrix
+*/
 MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.cols();
 	MatrixXd out(m.rows(), off + app.cols());
@@ -167,6 +181,16 @@ MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
 	out(seq(0,last),seq(off,last)) = app;
 	return out;
 }
+
+/// Append matrices together vertically
+/**
+Append a matrix app below matrix m. Note that the number of columns must match. Argument matrices are not modified.
+
+@param	m		Matrix to find append onto
+@param	app		Matrix to append
+
+@return out		Appended matrix
+*/
 MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
 	int off = m.rows();
 	MatrixXd out(off + app.rows(), m.cols());
@@ -177,7 +201,10 @@ MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
 
 
 
-// sph_sim constructor
+/// Constructor
+/**
+
+*/
 sph_sim::sph_sim() {
 	// Initialize default settings
 	init();
@@ -190,17 +217,16 @@ sph_sim::sph_sim() {
 	// Initialize positions and velocities
 	init_states();
 }
-sph_sim::sph_sim(param_struct param, group_conf_struct group_conf, double t0 /*= 0*/) : param(param), group_conf(group_conf), t0(t0) {
-	// Setup SPH properties
-	init_prop();
-	compute_hij();
-	kernel_type();
 
-	// Initialize positions and velocities
-	init_states();
-}
+/// Update SPH properties
+/**
+Update or change the SPH properties to match the properties in the arguments param and group_conf. For use in the simulation.
 
-// Update or change the SPH properties to match the properties in the arguments param and group_conf
+@param	param	Updated param_struct
+@param	group	Updated group_conf_struct
+
+@return n/a
+*/
 void sph_sim::sph_update_properties(const param_struct& param, const group_conf_struct& group) {
 	// Define parameters
 	this->param = param;
@@ -213,8 +239,17 @@ void sph_sim::sph_update_properties(const param_struct& param, const group_conf_
 	compute_hij();
 }
 
-// Take a single time-step forward in the simulation
-void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
+/// Take a single time-step forward in the simulation
+/**
+Advance the simulation time clock. Fourth-order Runge-Kutta method is used to approximate optimal path (?).
+
+@param	rdx		Updated reduced density particle positions
+@param	ldx		Updated loiter circle positions
+@param	lR		Updated loiter circle radii
+
+@return n/a
+*/
+void sph_sim::sph_sim_step(const MatrixXd& rdx,const MatrixXd& lx,const MatrixXd& lR) {
 	// NOTE: this simulation only uses the first 3 args, 2 more args are in the octave code
 	// Set reduced density particle positions
 	if(rdx.size() != 0 && group_conf.num_rd > 0) {
@@ -287,6 +322,10 @@ void sph_sim::sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR) {
 	constrain_vel();
 }
 
+/// Initialize values for demo simulation
+/**
+@return n/a
+*/
 void sph_sim::init() {
 	// Initialize SPH simulation parameters
 	rho0 = 1;
@@ -350,6 +389,12 @@ void sph_sim::init() {
 	group_conf.loiter_group.resize(1); group_conf.loiter_group << 0;
 }
 
+/// Resize property matrices
+/**
+Resize prop matrices to match number of particles (#npart).
+
+@return n/a
+*/
 void sph_sim::resize_prop() {
 	int N = group_conf.num_veh.sum() + group_conf.num_obs + group_conf.num_rd;
 	prop.vmin.resize(N, 1);
@@ -364,6 +409,12 @@ void sph_sim::resize_prop() {
 	prop.particle_type.resize(N, 1);
 }
 
+/// Initialize SPH properties
+/**
+Initialize #prop given the parameters specified by #group_conf and #param.
+
+@return n/a
+*/
 void sph_sim::init_prop() {
 	int N = 0;
 	resize_prop();
@@ -466,8 +517,10 @@ void sph_sim::init_prop() {
 		prop.mu(N,0) = 0;
 		// NOTE: check bounds on the seqs (seq(0,nveh))
 		MatrixXi I = find( ( prop.group(seq(0,nveh-1),0).array() == group_conf.rd_group(i) ).cast<double>() );
-		prop.K(N,0) = -1.0 * param.accel.rd * index(prop.amax,I).maxCoeff()
-							* kernel(0, prop.h(N),1) / kernel_grad(prop.h(N),prop.h(N), 1);
+		double max_amax = I.unaryExpr([&](int x) {
+			return prop.amax(x);
+		}).maxCoeff();
+		prop.K(N,0) = -1.0 * param.accel.rd * max_amax * kernel(0, prop.h(N),1) / kernel_grad(prop.h(N),prop.h(N), 1);
 
 		// Group number and particle type
 		prop.group(N,0) = group_conf.rd_group(i);
@@ -479,8 +532,13 @@ void sph_sim::init_prop() {
 	npart = N;
 }
 
-// Compute h_ij matrix
-void sph_sim::compute_hij() { // NOTE: Check the prop.h(seq(I1,I2),0), same as above, was causing errors
+/// Compute h_ij matrix
+/**
+Set smoothing width h for each particle.
+
+@return n/a
+*/
+void sph_sim::compute_hij() {
 	MatrixXd hi = prop.h(seq(0,nveh-1),0) * MatrixXd::Ones(1,nveh);
 	MatrixXd hj = hi.transpose();
 
@@ -500,24 +558,33 @@ void sph_sim::compute_hij() { // NOTE: Check the prop.h(seq(I1,I2),0), same as a
 	prop.hij = append_right(prop.hij, MatrixXd::Ones(prop.hij.rows(),1) * prop.h(seq(I1,I2),0).transpose());
 }
 
-// Create a matrix kernel_type that tells which kernel to use.
-// 1 is for vehicle-reduced density particle interactions,
-// 2 is for all others
+
+/// Create a matrix that tells which kernel to use for particle interactions
+/**
+1 is for vehicle-reduced density particle interactions
+
+2 is for all others
+
+@return n/a
+*/
 void sph_sim::kernel_type() {
-	int N = prop.m.rows() > prop.m.cols() ? prop.m.rows() : prop.m.cols();
+	int N = max(prop.m.rows(),prop.m.cols());
 
 	MatrixXd ki = prop.particle_type * MatrixXd::Ones(1,N);
 	MatrixXd kj = ki.transpose();
 
+	// Set everything to type 2 initially
 	prop.kernel_type = 2*MatrixXd::Ones(N,N);
 
+	// Set vehicle-reduced density particle interactions to type 1...
 	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
-	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() ); // NOTE: error here
+	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
 	I = I.unaryExpr([&](int x) {
 		prop.kernel_type(x) = 1;
 		return x;
 	});
+	// ...and vice-versa
 	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
 	I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
@@ -527,7 +594,10 @@ void sph_sim::kernel_type() {
 	});
 }
 
-// Set the initial SPH states (positions and velocities) for all particles
+/// Set the initial SPH states (positions and velocities) for all particles
+/**
+@return n/a
+*/
 void sph_sim::init_states() {
 	if(param.ndim == 2) {
 		// 2D initialization
@@ -549,7 +619,12 @@ void sph_sim::init_states() {
 
 }
 
-// 2D initialization, use a 2D hexagonal (close packed) lattice
+/// Initialize particle positions for 2D simulation
+/**
+Uses a 2D hexagonal (close packed) lattice
+
+@return n/a
+*/
 void sph_sim::init2d() {
 	// Basis vectors for a hexagonal lattice in 2D
 	Vector3d v1(1, 0, 0);
@@ -659,7 +734,12 @@ void sph_sim::init2d() {
 	}
 }
 
-// 3D initialization, use a 3D hexagonal (close packed) lattice
+/// Initialize particle positions for 3D simulation
+/**
+Uses a 3D hexagonal (close packed) lattice
+
+@return n/a
+*/
 void sph_sim::init3d() {
 	// Basis vectors for a hexagonal lattice in 3D
 	Vector3d v1(1, 0, 0);
