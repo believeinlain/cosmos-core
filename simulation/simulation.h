@@ -41,15 +41,19 @@ private:
 	int trackMax;
 
 	void init_simulation();
+	
+	void plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead);
 
+	void plot_points(const MatrixXd& x, const MatrixXd& y, const int& thead);
+	void plot_lx(const MatrixXd& lx);
 	void plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead);
 	string gnutrail(const RowVectorXd& pos, const string& varname, const int& thead);
+	
 
 
 public:
 	simulation();
 	void start_simulation();
-	void plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead);
 };
 
 
