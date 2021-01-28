@@ -8,7 +8,6 @@
 #include "gnuplot.h"
 #include "sph_sim.h"
 
-bool wait_for_key();
 
 class simulation {
 private:
@@ -39,11 +38,18 @@ private:
 	// Make sure to match group_conf.obs_init
 	MatrixXd obx;
 
+	int trackMax;
+
 	void init_simulation();
+
+	void plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead);
+	string gnutrail(const RowVectorXd& pos, const string& varname, const int& thead);
+
+
 public:
 	simulation();
 	void start_simulation();
-	void plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx);
+	void plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead);
 };
 
 
