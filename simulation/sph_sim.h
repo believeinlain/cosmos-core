@@ -123,13 +123,13 @@ public:
 	// group_conf	structure containing the SPH group configuration
 	// t0			option, if t0 is not given it is set to 0
 	sph_sim();
-	sph_sim(param_struct param, group_conf_struct group_conf, double t0 = 0);
+	//sph_sim(param_struct param, group_conf_struct group_conf, double t0 = 0);
 
 	// Update or change the SPH properties to match the properties in the arguments param and group_conf
 	void sph_update_properties(const param_struct& param, const group_conf_struct& group);
 
 	// Take a single time-step forward in the simulation
-	void sph_sim_step(MatrixXd rdx, MatrixXd lx, MatrixXd lR);
+	void sph_sim_step(const MatrixXd& rdx,const MatrixXd& lx,const MatrixXd& lR);
 
 	// GETTERS
 	// Return the current time in the SPH simulation
