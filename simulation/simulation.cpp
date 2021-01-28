@@ -15,7 +15,8 @@ void simulation::init_simulation() {
 	v = SPH.get_v() * MatrixXd::Ones(1,trackMax);
 
 	// Used for plotting the vehicle paths
-	trackt.push_back(SPH.get_initial_time());
+	trackt = vector<double>(100);
+	trackt[0] = SPH.get_initial_time();
 	plotdt = 0.1;	// replot every 100 milliseconds
 	plott = SPH.get_time();
 	t0 = SPH.get_time();
@@ -76,8 +77,7 @@ void simulation::start_simulation() {
 		y.col(thead) = SPH.get_y();
 		u.col(thead) = SPH.get_u();
 		v.col(thead) = SPH.get_v();
-		trackt.push_back(SPH.get_time());
-		thead = (thead + 1) % trackMax;
+		trackt[thead] = SPH.get_time();
 
 		if(x.array().isNaN().any()) {
 			cout << "Something went wrong, NaN detected in x-positions.";
@@ -86,13 +86,12 @@ void simulation::start_simulation() {
 
 		// Plot
 		if(SPH.get_time() >= plott - SPH.get_dt()/10) {
-			plot_veh(SPH,x,y,trackt,lx, obx, thead);
+			plot_veh(x,y,trackt,lx, obx, thead);
 			plott = plott + plotdt;
 		}
 
+		thead = (thead + 1) % trackMax;
 	}
-	//wait_for_key();
-
 }
 
 string gnuvec(const MatrixXd& mat, const string& varname) {
@@ -104,60 +103,73 @@ string gnuvec(const MatrixXd& mat, const string& varname) {
 	return o.str();
 }
 
-void simulation::plot_veh(const sph_sim& SPH, const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead) {
-	ostringstream o;
-	//o << "plot " //<< "(0+word(X,int(t))),(0+word(Y,int(t)))" << ", "			// line ver
-	//			 << "(0+word(X,int(t))),(0+word(Y,int(t))) with points";	// point ver
-	//gp.sendLine("HI",true);
-	
-	// Set variables "X" and "Y" to be the xy positions of the vehicles
-	/*gp.sendLine(gnuvec(x, "X"), true);
-	gp.sendLine(gnuvec(y, "Y"), true);
-	// Plot mode set to 2D
+void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead) {
+	gp.sendLine("reset", true);
+	gp.sendLine("set title \"Smoothed Particle Hydrodynamics for Agent Control\\n{/*0.85Time = " +to_string(trackt[thead]) + "}\" font \"Arial,16\"", true);
 	gp.sendLine("set parametric", true);
-	// Configure variable t to iterate through the xy positions
-	gp.sendLine("set trange [1:words(X)]; set samples words(X)", true);
-	// Disable legend in the corner
-	gp.sendLine("unset key", true);
-	// Set x/y-axis ranges
-	gp.sendLine("set xrange [-10:40]; set yrange [-10:10]", true);
-
-
-	//gp.sendLine("plot (0+word(X,int(t))),(0+word(Y,int(t)))", true);
-	gp.sendLine("plot (0+word(X,int(t))),(0+word(Y,int(t))) with points linetype 6", true);
-	gp.sendEndOfData();*/
+	plot_points(x,y,thead);
+	plot_lx(lx);
 	plot_trails(x,y,thead);
 }
 
-string simulation::gnutrail(const RowVectorXd& pos, const string& varname, const int& thead) {
-	ostringstream o;
-	o << varname << "=\"";
-	for(int i = 0; i < pos.size(); ++i) {
-		int tidx = (thead+i) % trackMax;
-		o << pos(tidx) << " ";
+void simulation::plot_points(const MatrixXd& x, const MatrixXd& y, const int& thead) {
+	for(int i = 0; i < x.rows(); ++i) {
+		// Vehicle
+		if(i < SPH.get_nveh()) {
+			// Vehicles are empty circles
+			gp.sendLine("set label at " + to_string(x(i,thead)) + "," + to_string(y(i,thead)) + " point pointtype 6 pointsize 1 lt rgb \"royalblue\"", true);
+		}
+		// Obstacle
+		else if(i < SPH.get_nveh() + SPH.get_nobs()) {
+			// Obstacles are empty squares
+			gp.sendLine("set label at " + to_string(x(i,thead)) + "," + to_string(y(i,thead)) + " point pointtype 4 pointsize 2 lt rgb \"salmon\"", true);
+		}
+		// Reduced density particle
+		else {
+			// Reduced density particles are stars
+			gp.sendLine("set label at " + to_string(x(i,thead)) + "," + to_string(y(i,thead)) + " point pointtype 3 pointsize 2 lt rgb \"goldenrod\"", true);
+		}
 	}
-	o << "\"";
-	return o.str();
 }
 
+// Plot the loiter circle
+void simulation::plot_lx(const MatrixXd& lx) {
+	if(lx.size() != 0) {
+		for(auto row : lx.rowwise()) {
+			gp.sendLine("set label at " + to_string(row(0)) + "," + to_string(row(1)) + " point pointtype 3 pointsize 2 lt rgb \"goldenrod\"", true);
+		}
+	}
+}
+
+// Display trail for each particle
 void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead) {
 	for(int i = 0; i < x.rows(); ++i) {
 		gp.sendLine(gnutrail(x.row(i),"X"+to_string(i),thead), true);
 		gp.sendLine(gnutrail(y.row(i),"Y"+to_string(i),thead), true);
 	}
-
-	gp.sendLine("set parametric", true);
 	gp.sendLine("set trange [1:words(X0)]; set samples words(X0)", true);
 	gp.sendLine("unset key", true);
-	gp.sendLine("set xrange [-10:40]; set yrange [-10:10]", true);
+	gp.sendLine("set xrange [-10:40]; set yrange [-10:10]; set size ratio -1", true);
 	ostringstream o;
 	o << "plot ";
 	for(int i = 0; i < x.rows(); ++i) {
-		o << "(0+word(X" << to_string(i) << ",int(t))),(0+word(Y" << to_string(i) << ",int(t)))";
+		o << "(0+word(X" << to_string(i) << ",int(t))),(0+word(Y" << to_string(i) << ",int(t))) lt rgb \"royalblue\"";
 		if(i+1 < x.rows()) {
 			o << ", ";
 		}
 	}
 	gp.sendLine(o.str(), true);
 	gp.sendEndOfData();
+}
+
+// Display trail for each particle
+string simulation::gnutrail(const RowVectorXd& pos, const string& varname, const int& thead) {
+	ostringstream o;
+	o << varname << "=\"";
+	for(int i = 0; i < pos.size(); ++i) {
+		int tidx = (thead+i+1) % trackMax;
+		o << pos(tidx) << " ";
+	}
+	o << "\"";
+	return o.str();
 }
