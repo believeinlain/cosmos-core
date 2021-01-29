@@ -580,18 +580,16 @@ void sph_sim::kernel_type() {
 	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
 	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
-	I = I.unaryExpr([&](int x) {
-		prop.kernel_type(x) = 1;
-		return x;
-	});
+	for(int i = 0; i < I.size(); ++i) {
+		prop.kernel_type(I(i)) = 1;
+	}
 	// ...and vice-versa
 	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
 	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
 	I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
-	I = I.unaryExpr([&](int x) {
-		prop.kernel_type(x) = 1;
-		return x;
-	});
+	for(int i = 0; i < I.size(); ++i) {
+		prop.kernel_type(I(i)) = 1;
+	}
 }
 
 /// Set the initial SPH states (positions and velocities) for all particles
@@ -766,19 +764,17 @@ MatrixXd sph_sim::sph_rhs() {
 	// Remove diagonal elements from MaskI
 	DiagonalMatrix<double, Dynamic> dm(npart);
 	dm.diagonal() = VectorXd::Ones(npart);
-	MatrixXd tmp = Mask - (MatrixXd)dm;	// NOTE: Check this
+	MatrixXd tmp = Mask - (MatrixXd)dm;
 	MaskI = find( ( tmp.array() == 1 ).cast<double>() );
 	
 	// Compute gradW
 	MatrixXd gradW = MatrixXd::Zero(npart, npart);
-	MaskI = MaskI.unaryExpr([&](int x) {
-		gradW(x) = kernel_grad(dij(x), prop.hij(x), prop.kernel_type(x));
-		return x;
-	});
+	for(int i = 0; i < MaskI.size(); ++i) {
+		gradW(MaskI(i)) = kernel_grad(dij(MaskI(i)), prop.hij(MaskI(i)), prop.kernel_type(MaskI(i)));
+	}
 
 	// Compute pressure
 	MatrixXd P = sph_compute_pressure(rho);
-	// NOTE: Check this
 	MatrixXd P_term = (P.array() / rho.array().pow(2)).matrix() * prop.m.transpose() + MatrixXd::Ones(npart,1) * (P.array() * prop.m.array() / rho.array().pow(2)).transpose().matrix();
 	// Magnitude of the pressure force
 	P_term = P_term.array() * gradW.array();
@@ -862,7 +858,7 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 		M(I2.reshaped(),I1).array() = 0; // NOTE: check this
 	}
 
-	// Indicies of nonzeros
+	// Indices of nonzeros
 	MatrixXi I = find( ( M.array() != 0 ).cast<double>() );
 	
 	return make_tuple(M,I);
@@ -876,19 +872,17 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 	
 	// NOTE: Another sparse matrix
 	MatrixXd K = MatrixXd::Zero(npart,npart);
-	MatrixXi temp = MaskI.unaryExpr([&](int x) {
-		K(x) = kernel(dij(x), prop.hij(x), prop.kernel_type(x));
-		return x;
-	});
+	for(int i = 0; i < MaskI.size(); ++i) {
+		K(MaskI(i)) = kernel(dij(MaskI(i)), prop.hij(MaskI(i)), prop.kernel_type(MaskI(i)));
+	}
 
 	MatrixXd rho = ( mj.array()*K.array() ).rowwise().sum();
 
 	// Reduced density particles have fixed density that does not consider the proximity of other particles
 	MatrixXi I = vseq(nveh+nobs, npart-1).cast<int>();
-	I = I.unaryExpr([&](int x) {
-		rho(x) = prop.m(x) * kernel(0, prop.h(x), 2);
-		return x;
-	});
+	for(int i = 0; i < I.size(); ++i) {
+		rho(I(i)) = prop.m(I(i)) * kernel(0, prop.h(I(i)), 2);
+	}
 	
 	return rho;
 }
@@ -904,10 +898,9 @@ MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
 MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
 								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
-	auto temp = MaskI.unaryExpr([&](int x) {
-		tmp(x) = tmp(x)/dij(x);
-		return x;
-	});
+	for(int i = 0; i < MaskI.size(); ++i) {
+		tmp(MaskI(i)) = tmp(MaskI(i))/dij(MaskI(i));
+	}
 
 	Matrix3D vji( MatrixXd::Ones(npart,1) * states(all,3).transpose() - states(all,3) * MatrixXd::Ones(1,npart),
 				  MatrixXd::Ones(npart,1) * states(all,4).transpose() - states(all,4) * MatrixXd::Ones(1,npart),
@@ -961,11 +954,10 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 
 			// Total force
 			double w = 1.0;
-			II = MatrixXi::NullaryExpr(II.rows(), II.cols(), [&](Index i) {
+			for(int i = 0; i < II.size(); ++i) {
 				Fx(II(i)) = w*F1x(i) + (2-w)*F2x(i);
 				Fy(II(i)) = w*F1y(i) + (2-w)*F2y(i);
-				return II(i);
-			});
+			}
 		} else {
 			// Simple attractor (no circulation force)
 
@@ -986,11 +978,10 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
 
 			MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
-			II = MatrixXi::NullaryExpr(II.rows(), II.cols(), [&](Index i) {
+			for(int i = 0; i < II.size(); ++i) {
 				Fx(II(i)) = mag(i) * x(i) / rr(i);
 				Fy(II(i)) = mag(i) * y(i) / rr(i);
-				return II(i);
-			});
+			}
 		}
 	}
 	Fx = (Fx.array().isNaN()).select(0, Fx);
