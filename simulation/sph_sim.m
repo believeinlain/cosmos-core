@@ -972,20 +972,6 @@ classdef sph_sim
             DvDt =   obj.param.gain.sph*squeeze(DvDt) ...
                    + obj.param.gain.ext*max(obj.prop.amax(1:obj.nveh))*[Fx Fy Fz] ...
                    - obj.param.gain.drag.*obj.states(:,4:6);
-            %dij
-            %rij
-            %unit_ij
-            %Mask
-            %MaskI
-            %rho
-            %gradW
-            %P
-            %P_term
-            %Pi_term
-            %Fx
-            %Fy
-            %Fz
-            %DvDt
             
             rhs = obj.sph_compute_rates(DvDt);
 
