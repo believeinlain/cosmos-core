@@ -515,7 +515,6 @@ void sph_sim::init_prop() {
 		// Force coeficients:
 		// No viscosity for attractors
 		prop.mu(N,0) = 0;
-		// NOTE: check bounds on the seqs (seq(0,nveh))
 		MatrixXi I = find( ( prop.group(seq(0,nveh-1),0).array() == group_conf.rd_group(i) ).cast<double>() );
 		double max_amax = I.unaryExpr([&](int x) {
 			return prop.amax(x);
@@ -759,13 +758,12 @@ MatrixXd sph_sim::sph_rhs() {
 	tie(Mask, MaskI) = sph_compute_mask(dij);
 
 	// Compute density
-	MatrixXd rho = sph_compute_density(dij, Mask, MaskI);
+	MatrixXd rho = sph_compute_density(dij, Mask, MaskI);	// NOTE: eq (3)
 
 	// Remove diagonal elements from MaskI
-	DiagonalMatrix<double, Dynamic> dm(npart);
+	MatrixXd dm = MatrixXd::Zero(npart,npart);
 	dm.diagonal() = VectorXd::Ones(npart);
-	MatrixXd tmp = Mask - (MatrixXd)dm;
-	MaskI = find( ( tmp.array() == 1 ).cast<double>() );
+	MaskI = find( ( (Mask - dm).array() == 1 ).cast<double>() );	// NOTE: can't we just set it to 0?
 	
 	// Compute gradW
 	MatrixXd gradW = MatrixXd::Zero(npart, npart);
@@ -774,7 +772,7 @@ MatrixXd sph_sim::sph_rhs() {
 	}
 
 	// Compute pressure
-	MatrixXd P = sph_compute_pressure(rho);
+	MatrixXd P = sph_compute_pressure(rho);		// NOTE: eq (5)/(8)
 	MatrixXd P_term = (P.array() / rho.array().pow(2)).matrix() * prop.m.transpose() + MatrixXd::Ones(npart,1) * (P.array() * prop.m.array() / rho.array().pow(2)).transpose().matrix();
 	// Magnitude of the pressure force
 	P_term = P_term.array() * gradW.array();
@@ -867,7 +865,6 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 // Mask I is a column vector of indices
 MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	// Reshape mask vector into matrix
-	// NOTE: crashes here after a while because prop.m reaches 40x1. Mask is 20x20, npart is 20
 	MatrixXd mj = Mask.array() * (MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
 	
 	// NOTE: Another sparse matrix
@@ -887,14 +884,53 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 	return rho;
 }
 
-// Equation of state to compute the pressure
+/// Equation of state to compute the pressure
+/**
+
+\f$
+P=B\left(\frac{\rho}{\rho_0}-1\right)
+\f$
+
+Where B is the bulk modulus.
+
+For use in the equation in sph_rhs() to compute the 1st term of the DvDt equation:
+
+\f$
+\frac{D\vec{v_i}^*}{Dt^*}=-\frac{1}{M^2}\sum_{j}{ m_j^* \left ( \frac{P_i^*}{\rho_i^{*2}} + \frac{P_j^*}{\rho_j^{*2}} \right ) \frac{\partial W_{ij}^*}{\partial \vec{x_i}^*} } - \frac{1}{Re} \sum_{j}{ m_j^* \frac{\vec{\Pi_{ij}}^*}{r_{ij}^*} \frac{\partial W_{ij}^*}{\partial r_{ij}^*} }
+\f$
+
+@param	rho		Particle density
+
+@return P		Pressure
+*/
 MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
 	MatrixXd P = prop.K.array() * rho.array() * (rho.array() / rho0 - 1);
 
 	return P;
 }
 
-// Compute the viscous forces
+///
+/**
+Equation to compute the viscous force.
+
+\f$
+\begin{align*}
+\left\|F_\mu\right\|=\mu \left| \frac{2mv_{max}}{\rho^2 \vec{r_{i j}}} \frac{dW_1(\vec{r_{i j}},h_{ij})}{d\left\|\vec{r_{i j}}\right|} \right|
+\end{align*}
+\f$
+
+This is the second term of the DvDt equation.
+
+@param	rho		Particle density
+@param	dij		Distance to particles
+@param	rij		Distance to particles, dx,dy,dz
+@param	unit_ij	Unit vector version of rij
+@param	gradW	Kernel gradient
+@param	Mask	See sph_compute_mask()
+@param	MaskI	See sph_compute_mask(). Diagonal has been set to 0.
+
+@return Pi		Viscous force
+*/
 MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
 								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
@@ -1161,5 +1197,8 @@ group_conf_struct sph_sim::get_group_conf() {
 }
 
 // TODO
-// INCOMPLETE, MODIFIED
-// contemplate the type of vseq. int or double? eh...
+// tags: NOTE, INCOMPLETE, MODIFIED
+// Contemplate the type of vseq. int or double? eh...
+// Check that arithmetic stuff uses doubles and not ints (e.g., 2.0 not 2)
+// Consider that I'm comparing using doubles (e.g., x == 1.0), which may cause issues?
+// Can maybe add an overload for the find function so I don't have to cast<double>()
