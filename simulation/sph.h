@@ -1,5 +1,5 @@
-#ifndef SPH_SIM_H
-#define SPH_SIM_H
+#ifndef SPH_H
+#define SPH_H
 
 #include <iostream>
 #include <math.h>
