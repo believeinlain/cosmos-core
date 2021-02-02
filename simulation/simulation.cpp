@@ -1,16 +1,17 @@
 #include "simulation.h"
 
 /// Constructor
-simulation::simulation() {
+simulation::simulation(int tf/*=100*/) : tf(tf) {
 	init_simulation();
 }
 
 /// Initialize the simulation parameters
-void simulation::init_simulation() {
+void simulation::init_simulation(int tf/*=100*/) {
 	param = SPH.get_param();
 	group_conf = SPH.get_group_conf();
 	// n x 100 matrix
 	trackMax = 100;
+	thead = 0;
 	x = SPH.get_x() * MatrixXd::Ones(1,trackMax);
 	y = SPH.get_y() * MatrixXd::Ones(1,trackMax);
 	u = SPH.get_u() * MatrixXd::Ones(1,trackMax);
@@ -22,7 +23,6 @@ void simulation::init_simulation() {
 	plotdt = 0.1;	// replot every 100 milliseconds
 	plott = SPH.get_time();
 	t0 = SPH.get_time();
-	tf = 100;	// time final, when to stop simulation
 
 	// Loiter circle position
 	lx.resize(1,2);
@@ -37,12 +37,23 @@ void simulation::init_simulation() {
 			16, 2,
 			 9,-2,
 			22,-6;
+	
+	// Initialize agents
+	// Find all agents
 }
 
 /// Start the simulation loop
 void simulation::start_simulation() {
 	GnuplotPipe gp;
-	int thead = 0; // where in the tracking matrix the head is
+
+	// 
+
+	// Simulation update cycle
+	for(double t = t0; t < tf; t += SPH.get_dt()) {
+
+	}
+
+	/*
 
 	for(double t = t0; t < tf; t += SPH.get_dt()) {
 		// Loiter circle locations
@@ -114,6 +125,7 @@ void simulation::start_simulation() {
 
 		thead = (thead + 1) % trackMax;
 	}
+	*/
 }
 
 /// Convert a vector into a gnuplot-parsable string
@@ -141,13 +153,13 @@ string gnuvec(const MatrixXd& mat, const string& varname) {
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead) {
+void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx) {
 	gp.sendLine("reset", true);
 	gp.sendLine("set title \"Smoothed Particle Hydrodynamics for Agent Control\\n{/*0.85Time = " +to_string(trackt[thead]) + "}\" font \"Arial,16\"", true);
 	gp.sendLine("set parametric", true);
-	plot_points(x,y,thead);
+	plot_points(x,y);
 	plot_lx(lx);
-	plot_trails(x,y,thead);
+	plot_trails(x,y);
 }
 
 /// Plot the SPH particles
@@ -157,7 +169,7 @@ void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<dou
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_points(const MatrixXd& x, const MatrixXd& y, const int& thead) {
+void simulation::plot_points(const MatrixXd& x, const MatrixXd& y) {
 	for(int i = 0; i < x.rows(); ++i) {
 		// Vehicle
 		if(i < SPH.get_nveh()) {
@@ -197,10 +209,10 @@ void simulation::plot_lx(const MatrixXd& lx) {
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead) {
+void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y) {
 	for(int i = 0; i < x.rows(); ++i) {
-		gp.sendLine(gnutrail(x.row(i),"X"+to_string(i),thead), true);
-		gp.sendLine(gnutrail(y.row(i),"Y"+to_string(i),thead), true);
+		gp.sendLine(gnutrail(x.row(i),"X"+to_string(i)), true);
+		gp.sendLine(gnutrail(y.row(i),"Y"+to_string(i)), true);
 	}
 	gp.sendLine("set trange [1:words(X0)]; set samples words(X0)", true);
 	gp.sendLine("unset key", true);
@@ -224,7 +236,7 @@ void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y, const int& th
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-string simulation::gnutrail(const RowVectorXd& pos, const string& varname, const int& thead) {
+string simulation::gnutrail(const RowVectorXd& pos, const string& varname) {
 	ostringstream o;
 	o << varname << "=\"";
 	for(int i = 0; i < pos.size(); ++i) {

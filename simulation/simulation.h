@@ -52,8 +52,13 @@ private:
 	/// Past number of time steps to track positions of
 	int trackMax;
 
+	/// Track the index of the head of the matrix
+	int thead;
+
 	/// Initialize the simulation parameters
-	void init_simulation();
+	void init_simulation(int tf=100);
+
+	/// Find the agents to use in the simulation
 
 	/// Create a visualization for the simulation using gnuplot
 	/**
@@ -65,7 +70,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead);
+	void plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx);
 
 	/// Plot the SPH particles
 	/**
@@ -74,7 +79,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_points(const MatrixXd& x, const MatrixXd& y, const int& thead);
+	void plot_points(const MatrixXd& x, const MatrixXd& y);
 
 	/// Plot the loiter circles
 	/**
@@ -90,7 +95,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead);
+	void plot_trails(const MatrixXd& x, const MatrixXd& y);
 
 	/// Convert history of particle positions into a gnuplot-parsable line
 	/**
@@ -99,13 +104,13 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	string gnutrail(const RowVectorXd& pos, const string& varname, const int& thead);
+	string gnutrail(const RowVectorXd& pos, const string& varname);
 	
 
 
 public:
 	/// Constructor
-	simulation();
+	simulation(int tf=100);
 	/// Start the simulation loop
 	void start_simulation();
 };
