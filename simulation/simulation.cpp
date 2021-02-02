@@ -1,9 +1,11 @@
 #include "simulation.h"
 
+/// Constructor
 simulation::simulation() {
 	init_simulation();
 }
 
+/// Initialize the simulation parameters
 void simulation::init_simulation() {
 	param = SPH.get_param();
 	group_conf = SPH.get_group_conf();
@@ -34,6 +36,7 @@ void simulation::init_simulation() {
 			22,-6;
 }
 
+/// Start the simulation loop
 void simulation::start_simulation() {
 	GnuplotPipe gp;
 	int thead = 0; // where in the tracking matrix the head is
@@ -43,9 +46,6 @@ void simulation::start_simulation() {
 		// Position [x y]
 		// Slow down the simulation a bit
 		this_thread::sleep_for (chrono::milliseconds(4));
-
-		
-		
 		
 		// Loiter circle radii
 		if(group_conf.num_loiter > 0) {
@@ -113,6 +113,12 @@ void simulation::start_simulation() {
 	}
 }
 
+/// Convert a vector into a gnuplot-parsable string
+/**
+@param	mat			Row/column vector to parse
+@param	varname		Variable name to assign the vector. Used by gnuplot.
+@return string
+*/
 string gnuvec(const MatrixXd& mat, const string& varname) {
 	ostringstream o;
 	o << varname << "=\"";
@@ -122,6 +128,16 @@ string gnuvec(const MatrixXd& mat, const string& varname) {
 	return o.str();
 }
 
+/// Create a visualization for the simulation using gnuplot
+/**
+@param	x			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of x positions of all SPH particles
+@param	trackt		Vector of time steps
+@param	lx			Matrix containing [x y] positions of the loiter circles
+@param	obx			Matrix containing [x y] positions of the obstacles
+@param	thead		Index position of the head of the vectors
+@return n/a
+*/
 void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx, const int& thead) {
 	gp.sendLine("reset", true);
 	gp.sendLine("set title \"Smoothed Particle Hydrodynamics for Agent Control\\n{/*0.85Time = " +to_string(trackt[thead]) + "}\" font \"Arial,16\"", true);
@@ -131,6 +147,13 @@ void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<dou
 	plot_trails(x,y,thead);
 }
 
+/// Plot the SPH particles
+/**
+@param	x			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of x positions of all SPH particles
+@param	thead		Index position of the head of the vectors
+@return n/a
+*/
 void simulation::plot_points(const MatrixXd& x, const MatrixXd& y, const int& thead) {
 	for(int i = 0; i < x.rows(); ++i) {
 		// Vehicle
@@ -151,7 +174,11 @@ void simulation::plot_points(const MatrixXd& x, const MatrixXd& y, const int& th
 	}
 }
 
-// Plot the loiter circle
+/// Plot the loiter circles
+/**
+@param	lx			Matrix containing [x y] positions of the loiter circles
+@return n/a
+*/
 void simulation::plot_lx(const MatrixXd& lx) {
 	if(lx.size() != 0) {
 		for(auto row : lx.rowwise()) {
@@ -160,7 +187,13 @@ void simulation::plot_lx(const MatrixXd& lx) {
 	}
 }
 
-// Display trail for each particle
+/// Display trail for each particle
+/**
+@param	x			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of x positions of all SPH particles
+@param	thead		Index position of the head of the vectors
+@return n/a
+*/
 void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y, const int& thead) {
 	for(int i = 0; i < x.rows(); ++i) {
 		gp.sendLine(gnutrail(x.row(i),"X"+to_string(i),thead), true);
@@ -181,7 +214,13 @@ void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y, const int& th
 	gp.sendEndOfData();
 }
 
-// Display trail for each particle
+/// Convert history of particle positions into a gnuplot-parsable line
+/**
+@param	pos			Matrix of history of positions of SPH particle
+@param	varname		Variable name to assign the line. Used by gnuplot.
+@param	thead		Index position of the head of the vectors
+@return n/a
+*/
 string simulation::gnutrail(const RowVectorXd& pos, const string& varname, const int& thead) {
 	ostringstream o;
 	o << varname << "=\"";

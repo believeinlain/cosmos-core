@@ -244,7 +244,7 @@ void sph_sim::sph_update_properties(const param_struct& param, const group_conf_
 Advance the simulation time clock. Fourth-order Runge-Kutta method is used to approximate optimal path (?).
 
 @param	rdx		Updated reduced density particle positions
-@param	ldx		Updated loiter circle positions
+@param	lx		Updated loiter circle positions
 @param	lR		Updated loiter circle radii
 
 @return n/a
@@ -744,7 +744,17 @@ void sph_sim::init3d() {
 	// implement later
 }
 
-// Return the right hand side of the SPH momentum equation
+/// Compute the right hand side of the SPH momentum equation
+/**
+
+\f$
+\begin{align*}
+\frac{D\vec{v_i}^*}{Dt^*}=-\frac{1}{M^2}\sum_{j}{ m_j^* \left ( \frac{P_i^*}{\rho_i^{*2}} + \frac{P_j^*}{\rho_j^{*2}} \right ) \frac{\partial W_{ij}^*}{\partial \vec{x_i}^*} } - \frac{1}{Re} \sum_{j}{ m_j^* \frac{\vec{\Pi_{ij}}^*}{r_{ij}^*} \frac{\partial W_{ij}^*}{\partial r_{ij}^*} }
+\end{align*}
+\f$
+
+@return sph		Matrix of forces
+*/
 MatrixXd sph_sim::sph_rhs() {
 	// Compute the interparticle distance and vectors
 	MatrixXd dij;
@@ -808,7 +818,11 @@ MatrixXd sph_sim::sph_rhs() {
 	return rhs;
 }
 
-// Compute the distance, vector, and unit vector between particles i and j
+/// Compute the distance, vector, and unit vector between particles i and j
+/**
+
+@return 	Returns a <MatrixXd, Matrix3D, Matrix3D> tuple, holding the distance, vector, and unit vector matrices, respectively.
+*/
 tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 	// Create distance matrix for dij(i,j) = distance between particles i and j
 	MatrixXd dx = states(all,0) * MatrixXd::Ones(1,npart);
@@ -833,11 +847,14 @@ tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 	return make_tuple(dij, rij, unit_ij);
 }
 
-// Compute the masking function and the indices that are non-zero
-//			{ 0 if dij>2*hij
-// M(i,j) = { 0 if particle j is not a vehicle and group(i)~=group(j)
-//			{ 0 if particle i is not a vehicle (except M(i,i)=1)
-//			{ 1 else
+/// Compute the masking function and the indices that are non-zero
+/**
+			 { 0 if dij>2*hij
+	M(i,j) = { 0 if particle j is not a vehicle and group(i)~=group(j)
+			 { 0 if particle i is not a vehicle (except M(i,i)=1)
+			 { 1 else
+@return		Returns a <MatrixXd, MatrixXi> tuple, holding the mask and a column vector of indices of nonzero elements of the mask, respectively.
+*/
 tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	// NOTE: This function uses sparse matrices, but let's ignore that for now
 	// Kernel is non-zero (i.e., dij < 2*hij)
@@ -862,7 +879,18 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 	return make_tuple(M,I);
 }
 
-// Mask I is a column vector of indices
+
+/// Compute the particle density equation
+/**
+
+\f$
+\begin{align*}
+\rho_i=\sum_j{ W ( \vec{r_{ij}} , h ) m_j }
+\end{align*}
+\f$
+
+@return Matrix of rho values 
+*/
 MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI) {
 	// Reshape mask vector into matrix
 	MatrixXd mj = Mask.array() * (MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
@@ -888,16 +916,14 @@ MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask,
 /**
 
 \f$
+\begin{align*}
 P=B\left(\frac{\rho}{\rho_0}-1\right)
+\end{align*}
 \f$
 
 Where B is the bulk modulus.
 
-For use in the equation in sph_rhs() to compute the 1st term of the DvDt equation:
-
-\f$
-\frac{D\vec{v_i}^*}{Dt^*}=-\frac{1}{M^2}\sum_{j}{ m_j^* \left ( \frac{P_i^*}{\rho_i^{*2}} + \frac{P_j^*}{\rho_j^{*2}} \right ) \frac{\partial W_{ij}^*}{\partial \vec{x_i}^*} } - \frac{1}{Re} \sum_{j}{ m_j^* \frac{\vec{\Pi_{ij}}^*}{r_{ij}^*} \frac{\partial W_{ij}^*}{\partial r_{ij}^*} }
-\f$
+This is the first term of the DvDt equation.
 
 @param	rho		Particle density
 
@@ -954,7 +980,10 @@ MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const
 	return Pi;
 }
 
-// Compute the external force on vehicles to drive them toward a loiter circle
+/// Compute the external force on vehicles to drive them toward a loiter circle
+/**
+@return		Returns a <MatrixXd,MatrixXd,MatrixXd> tuple containing the Fx,Fy,Fz forces, respectively.
+*/
 tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 	MatrixXd Fx = MatrixXd::Zero(states.rows(),1);
 	MatrixXd Fy = Fx;
@@ -1020,14 +1049,17 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			}
 		}
 	}
-	Fx = (Fx.array().isNaN()).select(0, Fx);
-	Fy = (Fy.array().isNaN()).select(0, Fy);
+	Fx = Fx.array().isNaN().select(0, Fx);
+	Fy = Fy.array().isNaN().select(0, Fy);
 
 	return make_tuple(Fx,Fy,Fz);
 }
 
-// Compute the rate of change of SPH.states, i.e., the velocity
-// and accelerations, while applying vehicle constraints
+/// Compute the rate of change of the velocity and accelerations, while applying vehicle constraints
+/**
+@param	DvDt	Matrix of the SPH momentum equation
+@return	rates	Matrix of rates of change in velocity and accelerations.
+*/
 MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	// Break acceleration into 2 components, normal and tangential:
 	MatrixXd v = states(all,seq(3,5));
@@ -1075,7 +1107,10 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 	return rates;
 }
 
-// Apply velocity constraints
+/// Apply velocity constraints
+/**
+@return	n/a
+*/
 void sph_sim::constrain_vel() {
 	// Max velocity constrain
 	MatrixXd V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
@@ -1099,99 +1134,134 @@ void sph_sim::constrain_vel() {
 // =============================================================
 // ========================== GETTERS ==========================
 // =============================================================
-// Return the current time in the SPH simulation
+/// Return the current time in the SPH simulation
+/**
+@return	double
+*/
 double sph_sim::get_time() {
 	return t;
 }
-// Return the initial time for the SPH simulation
+/// Return the initial time for the SPH simulation
+/**
+@return	double
+*/
 double sph_sim::get_initial_time() {
 	return t0;
 }
-// Return the time step to be used for the SPH simulation
+/// Return the time step to be used for the SPH simulation
+/**
+@return	double
+*/
 double sph_sim::get_dt() {
 	return param.dt;
 }
 
-// Return a matrix containing the [x y z] positions and [u v w] velocities of all SPH particles.
-// Each particle is stored in one row:
-//			[ x0 y0 z0 u0 v0 w0 ]
-// states = [ x1 y1 z1 u1 v1 w1 ]
-//			[		 ...		]
+/// Return a matrix containing the [x y z] positions and [u v w] velocities of all SPH particles.
+/**
+Each particle is stored in one row:
+
+			 [ x0 y0 z0 u0 v0 w0 ]
+	states = [ x1 y1 z1 u1 v1 w1 ]
+			 [		 ...		]
+
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_states() {
 	return states;
 }
 
-// Return the total number of particles in the simulation
+/// Return the total number of particles in the simulation
+/**
+@return	int
+*/
 int sph_sim::get_npart() {
 	return npart;
 }
-// Return the number of vehicles in the simulation
+/// Return the number of vehicles in the simulation
+/**
+@return	int
+*/
 int sph_sim::get_nveh() {
 	return nveh;
 }
-// Return the number of obstacles in the simulation
+/// Return the number of obstacles in the simulation
+/**
+@return	int
+*/
 int sph_sim::get_nobs() {
 	return nobs;
 }
-// Return the number of reduced density (attractor) particles in the simulation
+/// Return the number of reduced density (attractor) particles in the simulation
+/**
+@return	int
+*/
 int sph_sim::get_nrd() {
 	return nrd;
 }
 
-// Return a column vector containing x/y/z positions or u/v/w velocities of all the SPH particles
+/// Return a column vector containing the x positions of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_x() {
 	return states.col(0);
 }
+/// Return a column vector containing the y positions of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_y() {
 	return states.col(1);
 }
+/// Return a column vector containing the z positions of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_z() {
 	return states.col(2);
 }
+/// Return a column vector containing the u velocities of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_u() {
 	return states.col(3);
 }
+/// Return a column vector containing the v velocities of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_v() {
 	return states.col(4);
 }
+/// Return a column vector containing the w velocities of all the SPH particles
+/**
+@return	MatrixXd
+*/
 MatrixXd sph_sim::get_w() {
 	return states.col(5);
 }
 
-// Returns a prop_struct containing all the properties of each SPH particle in the simulation
-// Members of prop_struct:
-// MatrixXd vmin				Minimum velocity constraint
-// MatrixXd vmax				Maximum velocity constraint
-// MatrixXd turning_radius		Turning radius constraint
-// MatrixXd amax				Maximum acceleration constraint
-// MatrixXd h					Kernel width
-// MatrixXd m					Mass
-// MatrixXd mu					Viscosity
-// MatrixXd K					Bulk modulus
-// MatrixXd group				Group number
-// MatrixXd particle_type		Particle type (veh, obs, or rd)
-// MatrixXd hij					h_ij matrix
-// MatrixXd kernel_type			kernel type
+/// Returns a prop_struct containing all the properties of each SPH particle in the simulation
+/**
+@return prop_struct
+*/
 prop_struct sph_sim::get_prop() {
 	return prop;
 }
 
-// Returns a param_struct containing all the parameters used in the SPH simulation
-// Members of param_struct:
-// int param.ndim				dimension of the simulation (2 or 3)
-// double param.gain.sph		gain coefficient for the SPH forces
-// double param.gain.ext		gain coefficient for the external force
-// double param.gain.drag		gain coefficient for the drag force
-// double param.accel.veh		scaling constant for SPH vehicle forces
-// double param.accel.obs		scaling constant for SPH obstacle forces
-// double param.accel.rd		scaling constant for SPH attractor forces
-// double param.Re				Reynolds number
-// double param.dt				Time step
+/// Returns a param_struct containing all the parameters used in the SPH simulation
+/**
+@return param_struct
+*/
 param_struct sph_sim::get_param() {
 	return param;
 }
 
-// Return a group_conf_struct containing the group configuration
+/// Return a group_conf_struct containing the group configuration
+/**
+@return group_conf_struct
+*/
 group_conf_struct sph_sim::get_group_conf() {
 	return group_conf;
 }

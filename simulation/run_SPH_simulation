@@ -1,0 +1,2 @@
+g++ main.cpp simulation.cpp sph_sim.cpp -o main
+./main
