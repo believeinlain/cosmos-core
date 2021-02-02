@@ -1,2 +1,3 @@
-g++ main.cpp simulation.cpp sph_sim.cpp -o main
+# run this file to build and run the SPH simulation
+g++ main.cpp simulation.cpp sph.cpp -o main
 ./main

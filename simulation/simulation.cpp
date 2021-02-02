@@ -24,9 +24,12 @@ void simulation::init_simulation() {
 	t0 = SPH.get_time();
 	tf = 100;	// time final, when to stop simulation
 
+	// Loiter circle position
 	lx.resize(1,2);
 	lx << 28,0;
+	// Attractors
 	rdx.resize(1,2);
+	// Obstacle positions
 	// Make sure to match group_conf.obs_init
 	obx.resize(5,2);
 	obx << 	 7, 0,

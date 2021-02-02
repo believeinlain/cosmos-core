@@ -6,7 +6,7 @@
 #include <thread>         // std::this_thread::sleep_for
 #include <vector>
 #include "gnuplot.h"
-#include "sph_sim.h"
+#include "sph.h"
 
 
 class simulation {

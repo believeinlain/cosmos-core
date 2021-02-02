@@ -1,4 +1,4 @@
-#include "sph_sim.h"
+#include "sph.h"
 
 /// Evaluates the smoothing kernel function for the SPH equations
 /**
