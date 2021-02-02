@@ -484,7 +484,7 @@ void sph_sim::init_prop() {
 		double KERh = kernel(prop.h(N), prop.h(N), 2);
 
 		// Kernel gradient at h
-		double KERG = kernel_grad(prop.h(N), prop.h(N), 2);
+		//double KERG = kernel_grad(prop.h(N), prop.h(N), 2); // NOTE: not used?
 
 		// Force coeficients:
 		prop.mu(N,0) = 0;
@@ -719,7 +719,7 @@ void sph_sim::init2d() {
 		double zave = 0;
 
 		rn.col(0) = rn.col(0).array()-xave+xmid;
-		rn.col(1) = rn.col(1).array()-yave+xmid;
+		rn.col(1) = rn.col(1).array()-yave+ymid;
 		rn.col(2).setZero();
 
 		
