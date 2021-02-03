@@ -22,7 +22,6 @@ MatrixXd vseq(int val0, int val_last);
 MatrixXi sort(const MatrixXd& c);
 MatrixXd append_right(const MatrixXd& m, const MatrixXd& app);
 MatrixXd append_down(const MatrixXd& m, const MatrixXd& app);
-
 class sph_sim {
 private:
 	// Loiter circle x,y,z, R

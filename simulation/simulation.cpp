@@ -42,16 +42,11 @@ void simulation::init_simulation(int tf/*=100*/) {
 	// Find all agents
 }
 
+
 /// Start the simulation loop
 void simulation::start_simulation() {
 	GnuplotPipe gp;
 
-	// 
-
-	// Simulation update cycle
-	for(double t = t0; t < tf; t += SPH.get_dt()) {
-
-	}
 
 	/*
 
