@@ -3,18 +3,18 @@
 
 #include "Eigen/Dense"
 
-using namespace Eigen;
+//using namespace Eigen;
 using namespace std;
 
 enum particle_type_enum {veh, obs, rd };
 
 /// A 3D matrix, N x M x 3
 struct Matrix3D {
-	MatrixXd z0;
-	MatrixXd z1;
-	MatrixXd z2;
+	Eigen::MatrixXd z0;
+	Eigen::MatrixXd z1;
+	Eigen::MatrixXd z2;
 	Matrix3D()  {}
-	Matrix3D(MatrixXd a, MatrixXd b, MatrixXd c) : z0(a), z1(b), z2(c) {}
+	Matrix3D(Eigen::MatrixXd a, Eigen::MatrixXd b, Eigen::MatrixXd c) : z0(a), z1(b), z2(c) {}
 };
 
 /// Gain coefficients
@@ -40,49 +40,49 @@ struct accel_struct {
 /// Initial positions and velocities for the vehicle groupps
 struct pos_vel_struct {
 	// initial positions
-	VectorXd x, y, z;
+	Eigen::VectorXd x, y, z;
 
 	// initial velocities
-	VectorXd u, v, w;
+	Eigen::VectorXd u, v, w;
 };
 
 /// Limits for speed and acceleration
 struct veh_limits_struct {
-	VectorXd vmin, vmax;
-	VectorXd turning_radius;
+	Eigen::VectorXd vmin, vmax;
+	Eigen::VectorXd turning_radius;
 };
 
 /// Positions
 struct pos_struct {
-	VectorXd x, y, z;
+	Eigen::VectorXd x, y, z;
 };
 
 /// Structure containing all the properties of each SPH particle
 struct prop_struct {
 	/// Minimum velocity constraint
-	MatrixXd vmin;
+	Eigen::MatrixXd vmin;
 	/// Maximum velocity constraint
-	MatrixXd vmax;
+	Eigen::MatrixXd vmax;
 	/// Turning radius constraint
-	MatrixXd turning_radius;
+	Eigen::MatrixXd turning_radius;
 	/// Maximum acceleration constraint
-	MatrixXd amax;
+	Eigen::MatrixXd amax;
 	/// Kernel width
-	MatrixXd h;
+	Eigen::MatrixXd h;
 	/// Mass
-	MatrixXd m;
+	Eigen::MatrixXd m;
 	/// Viscosity
-	MatrixXd mu;
+	Eigen::MatrixXd mu;
 	/// Bulk modulus
-	MatrixXd K;
+	Eigen::MatrixXd K;
 	/// Group number
-	MatrixXd group;
+	Eigen::MatrixXd group;
 	/// Particle type (veh, obs, or rd)
-	MatrixXd particle_type;
+	Eigen::MatrixXd particle_type;
 	/// h_ij matrix
-	MatrixXd hij;
+	Eigen::MatrixXd hij;
 	/// Kernel type (1 or 2)
-	MatrixXd kernel_type;
+	Eigen::MatrixXd kernel_type;
 };
 
 
@@ -107,13 +107,13 @@ struct param_struct {
 /// The groups of vehicle, obstacles, and reduced density particles
 struct group_conf_struct {
 	/// Vector containing the number of vehicles in each group
-	VectorXi num_veh;
+	Eigen::VectorXi num_veh;
 
 	/// Struct of vectors of initial positions and velocities for the vehicle groups
 	pos_vel_struct veh_init;
 
 	/// Vector of smoothing widths for each group
-	VectorXd veh_h;
+	Eigen::VectorXd veh_h;
 
 	/// Limits for speed and acceleration
 	veh_limits_struct veh_limits;
@@ -122,7 +122,7 @@ struct group_conf_struct {
 	int num_obs;
 
 	/// Vector of size of particles (times 0.5)
-	VectorXd obs_h;
+	Eigen::VectorXd obs_h;
 
 	/// Vector of positions of the obstacles
 	pos_struct obs_init;
@@ -133,13 +133,13 @@ struct group_conf_struct {
 	/// Which group does each reduced density particle belong to?\n
 	/// Group number corresponds to array index for num_veh\n
 	/// -1 means not active
-	VectorXd rd_group;
+	Eigen::VectorXd rd_group;
 
 	/// Vector of initial positions and velocities for the reduced particles
 	pos_vel_struct rd_init;
 
 	/// Smoothing width for each reduced particle group
-	VectorXd rd_h;
+	Eigen::VectorXd rd_h;
 
 	/// Total number of loiter circles
 	int num_loiter;
@@ -147,7 +147,7 @@ struct group_conf_struct {
 	/// Which group does each loiter circle belong to?\n
 	/// Group number corresponds to array index for num_veh\n
 	/// -1 means not active
-	VectorXi loiter_group;
+	Eigen::VectorXi loiter_group;
 
 };
 

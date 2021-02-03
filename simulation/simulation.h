@@ -19,13 +19,13 @@ private:
 	/// Simulation group configurations
 	group_conf_struct group_conf;
 	/// History of x positions of particles
-	MatrixXd x;
+	Eigen::MatrixXd x;
 	/// History of y positions of particles
-	MatrixXd y;
+	Eigen::MatrixXd y;
 	/// History of u velocities of particles
-	MatrixXd u;
+	Eigen::MatrixXd u;
 	/// History of v velocities of particles
-	MatrixXd v;
+	Eigen::MatrixXd v;
 	/// Tracked time steps
 	vector<double> trackt;
 	/// Timestep for plot
@@ -41,14 +41,14 @@ private:
 	GnuplotPipe gp;
 
 	/// Loiter circle locations [x y]
-	MatrixXd lx;
+	Eigen::MatrixXd lx;
 	/// Loiter circle radii
-	MatrixXd lR;
+	Eigen::MatrixXd lR;
 	/// Reduced density target locations [x y]
-	MatrixXd rdx;
+	Eigen::MatrixXd rdx;
 
 	/// Make sure to match group_conf.obs_init
-	MatrixXd obx;
+	Eigen::MatrixXd obx;
 
 	/// Past number of time steps to track positions of
 	int trackMax;
@@ -71,7 +71,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx);
+	void plot_veh(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y, const vector<double>& trackt, const Eigen::MatrixXd& lx, const Eigen::MatrixXd& obx);
 
 	/// Plot the SPH particles
 	/**
@@ -80,14 +80,14 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_points(const MatrixXd& x, const MatrixXd& y);
+	void plot_points(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y);
 
 	/// Plot the loiter circles
 	/**
 	@param	lx			Matrix containing [x y] positions of the loiter circles
 	@return n/a
 	*/
-	void plot_lx(const MatrixXd& lx);
+	void plot_lx(const Eigen::MatrixXd& lx);
 
 	/// Display trail for each particle
 	/**
@@ -96,7 +96,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	void plot_trails(const MatrixXd& x, const MatrixXd& y);
+	void plot_trails(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y);
 
 	/// Convert history of particle positions into a gnuplot-parsable line
 	/**
@@ -105,7 +105,7 @@ private:
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
-	string gnutrail(const RowVectorXd& pos, const string& varname);
+	string gnutrail(const Eigen::RowVectorXd& pos, const string& varname);
 	
 
 

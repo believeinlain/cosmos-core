@@ -112,10 +112,10 @@ double kernel_grad(double r, double h, int type) {
 
 @return idxs	Vector of indices of nonzero elements. As row if A is a row vector, as a column vector otherwise.
 */
-MatrixXi find(const MatrixXd& m) {
-	MatrixXi idxs(1,m.size());
+Eigen::MatrixXi find(const Eigen::MatrixXd& m) {
+	Eigen::MatrixXi idxs(1,m.size());
 	int size = 0;
-	for(Index i=0; i<m.size(); ++i) {
+	for(Eigen::Index i=0; i<m.size(); ++i) {
 		if(m(i)) {
 			idxs(0,size) = i;
 			size++;
@@ -142,8 +142,8 @@ Returns a row vector of doubles in rising sequence by 1 (eg: {0, 1, 2, 3, ...}),
 
 @return rseq	Row vector
 */
-MatrixXd vseq(int val0, int valn) {
-	RowVectorXd rseq;
+Eigen::MatrixXd vseq(int val0, int valn) {
+	Eigen::RowVectorXd rseq;
 	rseq.setLinSpaced(valn-val0+1, val0, valn);
 	return rseq.matrix();
 }
@@ -154,8 +154,8 @@ MatrixXd vseq(int val0, int valn) {
 
 @return sorted	Row vector of sorted indices
 */
-MatrixXi sort(const MatrixXd& m) {
-	MatrixXi sorted(1,m.size());
+Eigen::MatrixXi sort(const Eigen::MatrixXd& m) {
+	Eigen::MatrixXi sorted(1,m.size());
 	for(int i = 0; i < m.size(); ++i) {
 		sorted(i) = i;
 	}
@@ -174,11 +174,11 @@ Append a matrix app to the right of matrix m. Note that the number of rows must 
 
 @return out		Appended matrix
 */
-MatrixXd append_right(const MatrixXd& m, const MatrixXd& app) {
+Eigen::MatrixXd append_right(const Eigen::MatrixXd& m, const Eigen::MatrixXd& app) {
 	int off = m.cols();
-	MatrixXd out(m.rows(), off + app.cols());
+	Eigen::MatrixXd out(m.rows(), off + app.cols());
 	out.topLeftCorner(m.rows(), m.cols()) = m;
-	out(seq(0,last),seq(off,last)) = app;
+	out(Eigen::seq(0,Eigen::last),Eigen::seq(off,Eigen::last)) = app;
 	return out;
 }
 
@@ -191,11 +191,11 @@ Append a matrix app below matrix m. Note that the number of columns must match. 
 
 @return out		Appended matrix
 */
-MatrixXd append_down(const MatrixXd& m, const MatrixXd& app) {
+Eigen::MatrixXd append_down(const Eigen::MatrixXd& m, const Eigen::MatrixXd& app) {
 	int off = m.rows();
-	MatrixXd out(off + app.rows(), m.cols());
+	Eigen::MatrixXd out(off + app.rows(), m.cols());
 	out.topLeftCorner(m.rows(), m.cols()) = m;
-	out(seq(off,last),seq(0,last)) = app;
+	out(Eigen::seq(off,Eigen::last),Eigen::seq(0,Eigen::last)) = app;
 	return out;
 }
 
@@ -249,7 +249,7 @@ Advance the simulation time clock. Fourth-order Runge-Kutta method is used to ap
 
 @return n/a
 */
-void sph_sim::sph_sim_step(const MatrixXd& rdx,const MatrixXd& lx,const MatrixXd& lR) {
+void sph_sim::sph_sim_step(const Eigen::MatrixXd& rdx,const Eigen::MatrixXd& lx,const Eigen::MatrixXd& lR) {
 	// NOTE: this simulation only uses the first 3 args, 2 more args are in the octave code
 	// Set reduced density particle positions
 	if(rdx.size() != 0 && group_conf.num_rd > 0) {
@@ -260,10 +260,10 @@ void sph_sim::sph_sim_step(const MatrixXd& rdx,const MatrixXd& lx,const MatrixXd
 			throw "Error in input to sph_sim_step";
 		}
 		int I1 = nveh + group_conf.num_obs;
-		states.col(0)(seq(I1,last)) = rdx.col(0);
-		states.col(1)(seq(I1,last)) = rdx.col(1);
+		states.col(0)(Eigen::seq(I1,Eigen::last)) = rdx.col(0);
+		states.col(1)(Eigen::seq(I1,Eigen::last)) = rdx.col(1);
 		if(param.ndim == 3) {
-			states.col(2)(seq(I1,last)) = rdx.col(2);
+			states.col(2)(Eigen::seq(I1,Eigen::last)) = rdx.col(2);
 		}
 	}
 
@@ -293,26 +293,26 @@ void sph_sim::sph_sim_step(const MatrixXd& rdx,const MatrixXd& lx,const MatrixXd
 
 	// Assume the background velocity is changing slower than the SPH timestep so just load it once
 	// if exist(velfunc) //NOTE: velfunc arg not used
-	MatrixXd uvw = MatrixXd::Zero(states.rows(),3);
+	Eigen::MatrixXd uvw = Eigen::MatrixXd::Zero(states.rows(),3);
 
 	// Fourth order Runge-Kutta timestep
-	MatrixXd k1 = sph_rhs();
-	k1(all,seq(0,2)) = k1(all,seq(0,2)) + uvw;
+	Eigen::MatrixXd k1 = sph_rhs();
+	k1(Eigen::all,Eigen::seq(0,2)) = k1(Eigen::all,Eigen::seq(0,2)) + uvw;
 	
 	sph_sim tmp = *this;
 	tmp.states = tmp.states + tmp.param.dt/2.0*k1;
-	MatrixXd k2 = tmp.sph_rhs();
-	k2(all,seq(0,2)) = k2(all,seq(0,2)) + uvw;
+	Eigen::MatrixXd k2 = tmp.sph_rhs();
+	k2(Eigen::all,Eigen::seq(0,2)) = k2(Eigen::all,Eigen::seq(0,2)) + uvw;
 
 	tmp = *this;
 	tmp.states = tmp.states + tmp.param.dt/2.0*k2;
-	MatrixXd k3 = tmp.sph_rhs();
-	k3(all,seq(0,2)) = k3(all,seq(0,2)) + uvw;
+	Eigen::MatrixXd k3 = tmp.sph_rhs();
+	k3(Eigen::all,Eigen::seq(0,2)) = k3(Eigen::all,Eigen::seq(0,2)) + uvw;
 
 	tmp = *this;
 	tmp.states = tmp.states + tmp.param.dt*k3;
-	MatrixXd k4 = tmp.sph_rhs();
-	k4(all,seq(0,2)) = k4(all,seq(0,2)) + uvw;
+	Eigen::MatrixXd k4 = tmp.sph_rhs();
+	k4(Eigen::all,Eigen::seq(0,2)) = k4(Eigen::all,Eigen::seq(0,2)) + uvw;
 
 	states = states + param.dt/6.0*(k1 + 2.0*k2 + 2.0*k3 + k4);
 	// Increment time
@@ -515,7 +515,7 @@ void sph_sim::init_prop() {
 		// Force coeficients:
 		// No viscosity for attractors
 		prop.mu(N,0) = 0;
-		MatrixXi I = find( ( prop.group(seq(0,nveh-1),0).array() == group_conf.rd_group(i) ).cast<double>() );
+		Eigen::MatrixXi I = find( ( prop.group(Eigen::seq(0,nveh-1),0).array() == group_conf.rd_group(i) ).cast<double>() );
 		double max_amax = I.unaryExpr([&](int x) {
 			return prop.amax(x);
 		}).maxCoeff();
@@ -538,8 +538,8 @@ Set smoothing width h for each particle.
 @return n/a
 */
 void sph_sim::compute_hij() {
-	MatrixXd hi = prop.h(seq(0,nveh-1),0) * MatrixXd::Ones(1,nveh);
-	MatrixXd hj = hi.transpose();
+	Eigen::MatrixXd hi = prop.h(Eigen::seq(0,nveh-1),0) * Eigen::MatrixXd::Ones(1,nveh);
+	Eigen::MatrixXd hj = hi.transpose();
 
 	// Vehicles: hij=max(hi,hj)
 	prop.hij = ( hi.array() > hj.array() ).select(hi,hj);
@@ -547,14 +547,14 @@ void sph_sim::compute_hij() {
 	// Obstacles: hij=h_obs
 	int I1 = nveh; // NOTE: +1 for 1 based indexing? Maybe not necessary. Consider I2 as well
 	int I2 = nveh + group_conf.num_obs - 1;
-	prop.hij = append_down(prop.hij, prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,prop.hij.cols()));
-	prop.hij = append_right(prop.hij, MatrixXd::Ones(prop.hij.rows(),1) * prop.h(seq(I1,I2),0).transpose());
+	prop.hij = append_down(prop.hij, prop.h(Eigen::seq(I1,I2),0) * Eigen::MatrixXd::Ones(1,prop.hij.cols()));
+	prop.hij = append_right(prop.hij, Eigen::MatrixXd::Ones(prop.hij.rows(),1) * prop.h(Eigen::seq(I1,I2),0).transpose());
 
 	// Reduced density particles: hij=h_rd
 	I1 = nveh + group_conf.num_obs;
 	I2 = nveh + group_conf.num_obs + group_conf.num_rd - 1;
-	prop.hij = append_down(prop.hij, prop.h(seq(I1,I2),0) * MatrixXd::Ones(1,prop.hij.cols()));
-	prop.hij = append_right(prop.hij, MatrixXd::Ones(prop.hij.rows(),1) * prop.h(seq(I1,I2),0).transpose());
+	prop.hij = append_down(prop.hij, prop.h(Eigen::seq(I1,I2),0) * Eigen::MatrixXd::Ones(1,prop.hij.cols()));
+	prop.hij = append_right(prop.hij, Eigen::MatrixXd::Ones(prop.hij.rows(),1) * prop.h(Eigen::seq(I1,I2),0).transpose());
 }
 
 
@@ -569,22 +569,22 @@ void sph_sim::compute_hij() {
 void sph_sim::kernel_type() {
 	int N = max(prop.m.rows(),prop.m.cols());
 
-	MatrixXd ki = prop.particle_type * MatrixXd::Ones(1,N);
-	MatrixXd kj = ki.transpose();
+	Eigen::MatrixXd ki = prop.particle_type * Eigen::MatrixXd::Ones(1,N);
+	Eigen::MatrixXd kj = ki.transpose();
 
 	// Set everything to type 2 initially
-	prop.kernel_type = 2*MatrixXd::Ones(N,N);
+	prop.kernel_type = 2*Eigen::MatrixXd::Ones(N,N);
 
 	// Set vehicle-reduced density particle interactions to type 1...
-	MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
-	MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
-	MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
+	Eigen::MatrixXd lhs = ( ki.array() == (int)particle_type_enum::veh*Eigen::MatrixXd::Ones(N,N).array() ).cast<double>();
+	Eigen::MatrixXd rhs = ( kj.array() == (int)particle_type_enum::rd*Eigen::MatrixXd::Ones(N,N).array() ).cast<double>();
+	Eigen::MatrixXi I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
 	for(int i = 0; i < I.size(); ++i) {
 		prop.kernel_type(I(i)) = 1;
 	}
 	// ...and vice-versa
-	lhs = ( kj.array() == (int)particle_type_enum::veh*MatrixXd::Ones(N,N).array() ).cast<double>();
-	rhs = ( ki.array() == (int)particle_type_enum::rd*MatrixXd::Ones(N,N).array() ).cast<double>();
+	lhs = ( kj.array() == (int)particle_type_enum::veh*Eigen::MatrixXd::Ones(N,N).array() ).cast<double>();
+	rhs = ( ki.array() == (int)particle_type_enum::rd*Eigen::MatrixXd::Ones(N,N).array() ).cast<double>();
 	I = find( (lhs.array() != 0 && rhs.array() != 0).cast<double>() );
 	for(int i = 0; i < I.size(); ++i) {
 		prop.kernel_type(I(i)) = 1;
@@ -606,13 +606,13 @@ void sph_sim::init_states() {
 
 	// Obstacles
 	for(int i = 0; i < group_conf.num_obs; ++i) {
-		MatrixXd app(1,6);
+		Eigen::MatrixXd app(1,6);
 		app << group_conf.obs_init.x(i), group_conf.obs_init.y(i), group_conf.obs_init.z(i), 0, 0, 0;	// x,y,z, u,v,w
 		states = append_down(states, app);
 	}
 
 	// Reduced density particles
-	states = append_down(states, MatrixXd::Zero(group_conf.num_rd,6));
+	states = append_down(states, Eigen::MatrixXd::Zero(group_conf.num_rd,6));
 
 }
 
@@ -624,45 +624,45 @@ Uses a 2D hexagonal (close packed) lattice
 */
 void sph_sim::init2d() {
 	// Basis vectors for a hexagonal lattice in 2D
-	Vector3d v1(1, 0, 0);
-	Vector3d v2(cos(M_PI/3.0), sin(M_PI/3.0), 0);
+	Eigen::Vector3d v1(1, 0, 0);
+	Eigen::Vector3d v2(cos(M_PI/3.0), sin(M_PI/3.0), 0);
 
 	int N = 90;
 	// Row 1 in x-direction
-	MatrixXd r(3,N);
-	r << vseq(0,N-1), MatrixXd::Zero(2,N);
+	Eigen::MatrixXd r(3,N);
+	r << vseq(0,N-1), Eigen::MatrixXd::Zero(2,N);
 	int n = r.cols();
 	for(int i = 1; i < N; ++i) {	// NOTE: Check that this is
-		MatrixXd app(r.rows(), n);
+		Eigen::MatrixXd app(r.rows(), n);
 		if(i % 2 == 0) {
-			app << r(0,seq(last-n+1,last)).array()+v2(0),
-				   r(1,seq(last-n+1,last)).array()+v2(1),
-				   r(2,seq(last-n+1,last)).array()+v2(2);
+			app << r(0,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(0),
+				   r(1,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(1),
+				   r(2,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(2);
 		} else {
-			app << r(0,seq(last-n+1,last)).array()+v2(0)-v1(0),
-				   r(1,seq(last-n+1,last)).array()+v2(1)-v1(1),
-				   r(2,seq(last-n+1,last)).array()+v2(2)-v1(2);
+			app << r(0,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(0)-v1(0),
+				   r(1,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(1)-v1(1),
+				   r(2,Eigen::seq(Eigen::last-n+1,Eigen::last)).array()+v2(2)-v1(2);
 		}
 		r = append_right(r, app);
 	}
 
 	// Randomize slightly to avoid singularities
-	r(seq(0,1),all) = r(seq(0,1),all).array() + MatrixXd::Random(2,r.cols()).array()/2*1e-8;
+	r(Eigen::seq(0,1),Eigen::all) = r(Eigen::seq(0,1),Eigen::all).array() + Eigen::MatrixXd::Random(2,r.cols()).array()/2*1e-8;
 
 	// Shift to origin
-	MatrixXd ave = r.rowwise().mean();
+	Eigen::MatrixXd ave = r.rowwise().mean();
 	r.row(0) = r.row(0).array()-ave(0);
 	r.row(1) = r.row(1).array()-ave(1);
 	r.row(2).setZero();
 
 	// Sort r by distance from the origin
 	// r is a 3xN matrix, with x y z for the rows
-	MatrixXd d = r.array().pow(2).colwise().sum().sqrt();
-	RowVectorXi I;
+	Eigen::MatrixXd d = r.array().pow(2).colwise().sum().sqrt();
+	Eigen::RowVectorXi I;
 	I.setLinSpaced(d.size(), 0, d.size()-1);
 	sort(I.data(), I.data()+I.size(), [&](int i, int j) { return d(i) < d(j); } );
-	MatrixXd temp = r;
-	r = temp(all, I);
+	Eigen::MatrixXd temp = r;
+	r = temp(Eigen::all, I);
 
 
 	// Shift to origin
@@ -676,7 +676,7 @@ void sph_sim::init2d() {
 	I.setLinSpaced(d.size(), 0, d.size()-1);
 	sort(I.data(), I.data()+I.size(), [&](int i, int j) { return d(i) < d(j); } );
 	temp = r;
-	r = temp(all, I);
+	r = temp(Eigen::all, I);
 
 	// Shift to origin
 	r.row(0) = r.row(0).array()-r(0,0);
@@ -706,13 +706,13 @@ void sph_sim::init2d() {
 		double vy = group_conf.veh_init.v(i);
 		double vz = 0;
 
-		MatrixXd rtmp = MatrixXd::Zero(r.rows(), 6);
-		rtmp.topLeftCorner(r.rows(),3) = r(all,seq(0,2)) * 2 * group_conf.veh_h(i);
+		Eigen::MatrixXd rtmp = Eigen::MatrixXd::Zero(r.rows(), 6);
+		rtmp.topLeftCorner(r.rows(),3) = r(Eigen::all,Eigen::seq(0,2)) * 2 * group_conf.veh_h(i);
 		rtmp.col(3).setConstant(vx);
 		rtmp.col(4).setConstant(vy);
 		rtmp.col(5).setZero();
 		
-		MatrixXd rn = rtmp(seqN(0,n),all);
+		Eigen::MatrixXd rn = rtmp(Eigen::seqN(0,n),Eigen::all);
 
 		double xave = rn.col(0).mean();
 		double yave = rn.col(1).mean();
@@ -739,8 +739,8 @@ Uses a 3D hexagonal (close packed) lattice
 */
 void sph_sim::init3d() {
 	// Basis vectors for a hexagonal lattice in 3D
-	Vector3d v1(1, 0, 0);
-	Vector3d v2(cos(M_PI/3.0), sin(M_PI/3.0), 0);
+	//Vector3d v1(1, 0, 0);
+	//Vector3d v2(cos(M_PI/3.0), sin(M_PI/3.0), 0);
 	// implement later
 }
 
@@ -755,64 +755,64 @@ void sph_sim::init3d() {
 
 @return sph		Matrix of forces
 */
-MatrixXd sph_sim::sph_rhs() {
+Eigen::MatrixXd sph_sim::sph_rhs() {
 	// Compute the interparticle distance and vectors
-	MatrixXd dij;
+	Eigen::MatrixXd dij;
 	Matrix3D rij;
 	Matrix3D unit_ij;
 	tie(dij, rij, unit_ij) = sph_compute_dij();
 
 	// Compute the mask function Mask(i,j) = 1 if particles interact
-	MatrixXd Mask;
-	MatrixXi MaskI;
+	Eigen::MatrixXd Mask;
+	Eigen::MatrixXi MaskI;
 	tie(Mask, MaskI) = sph_compute_mask(dij);
 
 	// Compute density
-	MatrixXd rho = sph_compute_density(dij, Mask, MaskI);	// NOTE: eq (3)
+	Eigen::MatrixXd rho = sph_compute_density(dij, Mask, MaskI);	// NOTE: eq (3)
 
 	// Remove diagonal elements from MaskI
-	MatrixXd dm = MatrixXd::Zero(npart,npart);
-	dm.diagonal() = VectorXd::Ones(npart);
+	Eigen::MatrixXd dm = Eigen::MatrixXd::Zero(npart,npart);
+	dm.diagonal() = Eigen::VectorXd::Ones(npart);
 	MaskI = find( ( (Mask - dm).array() == 1 ).cast<double>() );	// NOTE: can't we just set it to 0?
 	
 	// Compute gradW
-	MatrixXd gradW = MatrixXd::Zero(npart, npart);
+	Eigen::MatrixXd gradW = Eigen::MatrixXd::Zero(npart, npart);
 	for(int i = 0; i < MaskI.size(); ++i) {
 		gradW(MaskI(i)) = kernel_grad(dij(MaskI(i)), prop.hij(MaskI(i)), prop.kernel_type(MaskI(i)));
 	}
 
 	// Compute pressure
-	MatrixXd P = sph_compute_pressure(rho);		// NOTE: eq (5)/(8)
-	MatrixXd P_term = (P.array() / rho.array().pow(2)).matrix() * prop.m.transpose() + MatrixXd::Ones(npart,1) * (P.array() * prop.m.array() / rho.array().pow(2)).transpose().matrix();
+	Eigen::MatrixXd P = sph_compute_pressure(rho);		// NOTE: eq (5)/(8)
+	Eigen::MatrixXd P_term = (P.array() / rho.array().pow(2)).matrix() * prop.m.transpose() + Eigen::MatrixXd::Ones(npart,1) * (P.array() * prop.m.array() / rho.array().pow(2)).transpose().matrix();
 	// Magnitude of the pressure force
 	P_term = P_term.array() * gradW.array();
 
 	// Viscosity
-	MatrixXd Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
+	Eigen::MatrixXd Pi_term = sph_compute_pi(rho, dij, rij, unit_ij, gradW, Mask, MaskI);
 
-	MatrixXd DvDt(unit_ij.z0.rows(), 3);
+	Eigen::MatrixXd DvDt(unit_ij.z0.rows(), 3);
 	DvDt <<	(P_term.array() * unit_ij.z0.array() * -1).rowwise().sum(),
 			(P_term.array() * unit_ij.z1.array() * -1).rowwise().sum(),
 			(P_term.array() * unit_ij.z2.array() * -1).rowwise().sum();
 	DvDt = DvDt.array() + Pi_term.array()/param.Re;
 
 	// External forcing
-	MatrixXd Fx, Fy, Fz;
+	Eigen::MatrixXd Fx, Fy, Fz;
 	tie(Fx,Fy,Fz) = external_force();
 
 	// Sum of forces
-	double max_amax = MatrixXd::NullaryExpr(nveh, 1, [&](Index i) {
+	double max_amax = Eigen::MatrixXd::NullaryExpr(nveh, 1, [&](Eigen::Index i) {
 		return prop.amax(i);
 	}).maxCoeff();
-	DvDt(all,0) = param.gain.sph * DvDt(all,0).array() + param.gain.ext * max_amax * Fx.array() - param.gain.drag * states(all,3).array();
-	DvDt(all,1) = param.gain.sph * DvDt(all,1).array() + param.gain.ext * max_amax * Fy.array() - param.gain.drag * states(all,4).array();
-	DvDt(all,2) = param.gain.sph * DvDt(all,2).array() + param.gain.ext * max_amax * Fz.array() - param.gain.drag * states(all,5).array();
+	DvDt(Eigen::all,0) = param.gain.sph * DvDt(Eigen::all,0).array() + param.gain.ext * max_amax * Fx.array() - param.gain.drag * states(Eigen::all,3).array();
+	DvDt(Eigen::all,1) = param.gain.sph * DvDt(Eigen::all,1).array() + param.gain.ext * max_amax * Fy.array() - param.gain.drag * states(Eigen::all,4).array();
+	DvDt(Eigen::all,2) = param.gain.sph * DvDt(Eigen::all,2).array() + param.gain.ext * max_amax * Fz.array() - param.gain.drag * states(Eigen::all,5).array();
 
-	MatrixXd rhs = sph_compute_rates(DvDt);
+	Eigen::MatrixXd rhs = sph_compute_rates(DvDt);
 
 	if(param.ndim == 2) {
-		rhs(all,2).array() = 0;
-		rhs(all,5).array() = 0;
+		rhs(Eigen::all,2).array() = 0;
+		rhs(Eigen::all,5).array() = 0;
 	}
 
 	return rhs;
@@ -821,21 +821,21 @@ MatrixXd sph_sim::sph_rhs() {
 /// Compute the distance, vector, and unit vector between particles i and j
 /**
 
-@return 	Returns a <MatrixXd, Matrix3D, Matrix3D> tuple, holding the distance, vector, and unit vector matrices, respectively.
+@return 	Returns a <Eigen::MatrixXd, Matrix3D, Matrix3D> tuple, holding the distance, vector, and unit vector matrices, respectively.
 */
-tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
+tuple<Eigen::MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 	// Create distance matrix for dij(i,j) = distance between particles i and j
-	MatrixXd dx = states(all,0) * MatrixXd::Ones(1,npart);
-	MatrixXd temp = dx.transpose();
+	Eigen::MatrixXd dx = states(Eigen::all,0) * Eigen::MatrixXd::Ones(1,npart);
+	Eigen::MatrixXd temp = dx.transpose();
 	dx = dx-temp;
-	MatrixXd dy = states(all,1) * MatrixXd::Ones(1,npart);
+	Eigen::MatrixXd dy = states(Eigen::all,1) * Eigen::MatrixXd::Ones(1,npart);
 	temp = dy.transpose();
 	dy = dy-temp;
-	MatrixXd dz = states(all,2) * MatrixXd::Ones(1,npart);
+	Eigen::MatrixXd dz = states(Eigen::all,2) * Eigen::MatrixXd::Ones(1,npart);
 	temp = dz.transpose();
 	dz = dz-temp;
 
-	MatrixXd dij = (dx.array().pow(2) + dy.array().pow(2) + dz.array().pow(2)).sqrt();
+	Eigen::MatrixXd dij = (dx.array().pow(2) + dy.array().pow(2) + dz.array().pow(2)).sqrt();
 
 	Matrix3D rij(dx,dy,dz);
 	Matrix3D unit_ij(dx.array()/dij.array(), dy.array()/dij.array(), dz.array()/dij.array());
@@ -853,28 +853,28 @@ tuple<MatrixXd, Matrix3D, Matrix3D> sph_sim::sph_compute_dij() {
 	M(i,j) = { 0 if particle j is not a vehicle and group(i)~=group(j)
 			 { 0 if particle i is not a vehicle (except M(i,i)=1)
 			 { 1 else
-@return		Returns a <MatrixXd, MatrixXi> tuple, holding the mask and a column vector of indices of nonzero elements of the mask, respectively.
+@return		Returns a <Eigen::MatrixXd, Eigen::MatrixXi> tuple, holding the mask and a column vector of indices of nonzero elements of the mask, respectively.
 */
-tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
+tuple<Eigen::MatrixXd, Eigen::MatrixXi> sph_sim::sph_compute_mask(const Eigen::MatrixXd& dij) {
 	// NOTE: This function uses sparse matrices, but let's ignore that for now
 	// Kernel is non-zero (i.e., dij < 2*hij)
-	MatrixXd M = (dij(seqN(0,nveh),all).array() < 2*prop.hij(seqN(0,nveh),all).array()).cast<double>();
+	Eigen::MatrixXd M = (dij(Eigen::seqN(0,nveh),Eigen::all).array() < 2*prop.hij(Eigen::seqN(0,nveh),Eigen::all).array()).cast<double>();
 	
 	// Obstacle or reduced density particle
 	// NOTE: check that I'm understanding this correctly as an append down
-	M = append_down(M, MatrixXd::Zero(npart-nveh,dij.cols()));			// M(i,:) = 0
+	M = append_down(M, Eigen::MatrixXd::Zero(npart-nveh,dij.cols()));			// M(i,:) = 0
 	int n = nobs + nrd;
-	M(seq(nveh,last),seq(nveh,last)).diagonal() = VectorXd::Ones(n);	// M(i,i) = 1
+	M(Eigen::seq(nveh,Eigen::last),Eigen::seq(nveh,Eigen::last)).diagonal() = Eigen::VectorXd::Ones(n);	// M(i,i) = 1
 
 	// Reduced density particles
 	for(int i = 0; i < nrd; ++i) {
 		int I1 = nveh + nobs + i;
-		MatrixXi I2 = find( ( prop.group.array() != prop.group(I1) ).cast<double>() );
+		Eigen::MatrixXi I2 = find( ( prop.group.array() != prop.group(I1) ).cast<double>() );
 		M(I2.reshaped(),I1).array() = 0; // NOTE: check this
 	}
 
 	// Indices of nonzeros
-	MatrixXi I = find( ( M.array() != 0 ).cast<double>() );
+	Eigen::MatrixXi I = find( ( M.array() != 0 ).cast<double>() );
 	
 	return make_tuple(M,I);
 }
@@ -891,20 +891,20 @@ tuple<MatrixXd, MatrixXi> sph_sim::sph_compute_mask(const MatrixXd& dij) {
 
 @return Matrix of rho values 
 */
-MatrixXd sph_sim::sph_compute_density(const MatrixXd& dij, const MatrixXd& Mask, const MatrixXi& MaskI) {
+Eigen::MatrixXd sph_sim::sph_compute_density(const Eigen::MatrixXd& dij, const Eigen::MatrixXd& Mask, const Eigen::MatrixXi& MaskI) {
 	// Reshape mask vector into matrix
-	MatrixXd mj = Mask.array() * (MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
+	Eigen::MatrixXd mj = Mask.array() * (Eigen::MatrixXd::Ones(npart,1) * prop.m.transpose()).array();
 	
 	// NOTE: Another sparse matrix
-	MatrixXd K = MatrixXd::Zero(npart,npart);
+	Eigen::MatrixXd K = Eigen::MatrixXd::Zero(npart,npart);
 	for(int i = 0; i < MaskI.size(); ++i) {
 		K(MaskI(i)) = kernel(dij(MaskI(i)), prop.hij(MaskI(i)), prop.kernel_type(MaskI(i)));
 	}
 
-	MatrixXd rho = ( mj.array()*K.array() ).rowwise().sum();
+	Eigen::MatrixXd rho = ( mj.array()*K.array() ).rowwise().sum();
 
 	// Reduced density particles have fixed density that does not consider the proximity of other particles
-	MatrixXi I = vseq(nveh+nobs, npart-1).cast<int>();
+	Eigen::MatrixXi I = vseq(nveh+nobs, npart-1).cast<int>();
 	for(int i = 0; i < I.size(); ++i) {
 		rho(I(i)) = prop.m(I(i)) * kernel(0, prop.h(I(i)), 2);
 	}
@@ -929,8 +929,8 @@ This is the first term of the DvDt equation.
 
 @return P		Pressure
 */
-MatrixXd sph_sim::sph_compute_pressure(const MatrixXd& rho) {
-	MatrixXd P = prop.K.array() * rho.array() * (rho.array() / rho0 - 1);
+Eigen::MatrixXd sph_sim::sph_compute_pressure(const Eigen::MatrixXd& rho) {
+	Eigen::MatrixXd P = prop.K.array() * rho.array() * (rho.array() / rho0 - 1);
 
 	return P;
 }
@@ -957,23 +957,23 @@ This is the second term of the DvDt equation.
 
 @return Pi		Viscous force
 */
-MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
-								const MatrixXd& gradW, const MatrixXd& Mask, const MatrixXi& MaskI) {
-	MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
+Eigen::MatrixXd sph_sim::sph_compute_pi(const Eigen::MatrixXd& rho, const Eigen::MatrixXd& dij, const Matrix3D& rij, const Matrix3D& unit_ij,
+								const Eigen::MatrixXd& gradW, const Eigen::MatrixXd& Mask, const Eigen::MatrixXi& MaskI) {
+	Eigen::MatrixXd tmp = ( rho.array().pow(-1).matrix() * (2 * prop.m.array() / rho.array()).transpose().matrix() ).transpose().array() * gradW.array();
 	for(int i = 0; i < MaskI.size(); ++i) {
 		tmp(MaskI(i)) = tmp(MaskI(i))/dij(MaskI(i));
 	}
 
-	Matrix3D vji( MatrixXd::Ones(npart,1) * states(all,3).transpose() - states(all,3) * MatrixXd::Ones(1,npart),
-				  MatrixXd::Ones(npart,1) * states(all,4).transpose() - states(all,4) * MatrixXd::Ones(1,npart),
-				  MatrixXd::Ones(npart,1) * states(all,5).transpose() - states(all,5) * MatrixXd::Ones(1,npart) );
+	Matrix3D vji( Eigen::MatrixXd::Ones(npart,1) * states(Eigen::all,3).transpose() - states(Eigen::all,3) * Eigen::MatrixXd::Ones(1,npart),
+				  Eigen::MatrixXd::Ones(npart,1) * states(Eigen::all,4).transpose() - states(Eigen::all,4) * Eigen::MatrixXd::Ones(1,npart),
+				  Eigen::MatrixXd::Ones(npart,1) * states(Eigen::all,5).transpose() - states(Eigen::all,5) * Eigen::MatrixXd::Ones(1,npart) );
 	
 	// No viscosity for reduced density particles or obstacles
-	vji.z0(all,seq(nveh,last)) = MatrixXd::Zero(vji.z0.rows(), vji.z0.cols()-nveh);	// NOTE: Check cols is correct on Zero matrix
-	vji.z1(all,seq(nveh,last)) = MatrixXd::Zero(vji.z1.rows(), vji.z1.cols()-nveh);
-	vji.z2(all,seq(nveh,last)) = MatrixXd::Zero(vji.z2.rows(), vji.z2.cols()-nveh);
+	vji.z0(Eigen::all,Eigen::seq(nveh,Eigen::last)) = Eigen::MatrixXd::Zero(vji.z0.rows(), vji.z0.cols()-nveh);	// NOTE: Check cols is correct on Zero matrix
+	vji.z1(Eigen::all,Eigen::seq(nveh,Eigen::last)) = Eigen::MatrixXd::Zero(vji.z1.rows(), vji.z1.cols()-nveh);
+	vji.z2(Eigen::all,Eigen::seq(nveh,Eigen::last)) = Eigen::MatrixXd::Zero(vji.z2.rows(), vji.z2.cols()-nveh);
 
-	MatrixXd Pi(vji.z0.rows(), 3);
+	Eigen::MatrixXd Pi(vji.z0.rows(), 3);
 	Pi <<	(tmp.array() * vji.z0.array() * -1).rowwise().sum(),
 			(tmp.array() * vji.z1.array() * -1).rowwise().sum(),
 			(tmp.array() * vji.z2.array() * -1).rowwise().sum();
@@ -982,15 +982,15 @@ MatrixXd sph_sim::sph_compute_pi(const MatrixXd& rho, const MatrixXd& dij, const
 
 /// Compute the external force on vehicles to drive them toward a loiter circle
 /**
-@return		Returns a <MatrixXd,MatrixXd,MatrixXd> tuple containing the Fx,Fy,Fz forces, respectively.
+@return		Returns a <Eigen::MatrixXd,Eigen::MatrixXd,Eigen::MatrixXd> tuple containing the Fx,Fy,Fz forces, respectively.
 */
-tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
-	MatrixXd Fx = MatrixXd::Zero(states.rows(),1);
-	MatrixXd Fy = Fx;
-	MatrixXd Fz = Fx;
+tuple<Eigen::MatrixXd,Eigen::MatrixXd,Eigen::MatrixXd> sph_sim::external_force() {
+	Eigen::MatrixXd Fx = Eigen::MatrixXd::Zero(states.rows(),1);
+	Eigen::MatrixXd Fy = Fx;
+	Eigen::MatrixXd Fz = Fx;
 	for(int i = 0; i < group_conf.num_loiter; ++i) {
 		int group_num = group_conf.loiter_group(i);
-		MatrixXi II = find( ( prop.group.array() == group_num ).cast<double>() );
+		Eigen::MatrixXi II = find( ( prop.group.array() == group_num ).cast<double>() );
 		
 		// Loiter circle
 		if(lR(i) > 0) {
@@ -998,24 +998,24 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 			double width = lR(i)/4;
 
 			// Shift the center of the loiter circle
-			MatrixXd x = states(II.reshaped(),0).array() - lx(i,0);
-			MatrixXd y = states(II.reshaped(),1).array() - lx(i,1);
+			Eigen::MatrixXd x = states(II.reshaped(),0).array() - lx(i,0);
+			Eigen::MatrixXd y = states(II.reshaped(),1).array() - lx(i,1);
 
 			// Attraction component
-			MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			Eigen::MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
 			d = (d.array() - lR(i)) / width;
-			MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
+			Eigen::MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
 
-			MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
-			MatrixXd F1x = mag.array() * x.array() / rr.array();
-			MatrixXd F1y = mag.array() * y.array() / rr.array();
+			Eigen::MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			Eigen::MatrixXd F1x = mag.array() * x.array() / rr.array();
+			Eigen::MatrixXd F1y = mag.array() * y.array() / rr.array();
 
 			// Circulation component
-			MatrixXd theta = MatrixXd::NullaryExpr(y.rows(), y.cols(), [&](Index i) { 
+			Eigen::MatrixXd theta = Eigen::MatrixXd::NullaryExpr(y.rows(), y.cols(), [&](Eigen::Index i) { 
 				return atan2(y(i),x(i));
 			});
-			MatrixXd F2x = ( exp(2) * ( rr.array() / lR(i) ).pow(2) * exp(-2 * rr.array() / lR(i)) ) * sin(theta.array()) * -1;
-			MatrixXd F2y = ( exp(2) * ( rr.array() / lR(i) ).pow(2) * exp(-2 * rr.array() / lR(i)) ) * cos(theta.array());
+			Eigen::MatrixXd F2x = ( exp(2) * ( rr.array() / lR(i) ).pow(2) * exp(-2 * rr.array() / lR(i)) ) * sin(theta.array()) * -1;
+			Eigen::MatrixXd F2y = ( exp(2) * ( rr.array() / lR(i) ).pow(2) * exp(-2 * rr.array() / lR(i)) ) * cos(theta.array());
 
 			// Total force
 			double w = 1.0;
@@ -1034,15 +1034,15 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 								)
 								* II.size()
 							) / 2.0;
-			MatrixXd x = states(II.reshaped(),0) - lx(II.reshaped(),0);
-			MatrixXd y = states(II.reshaped(),1) - lx(II.reshaped(),1);
+			Eigen::MatrixXd x = states(II.reshaped(),0) - lx(II.reshaped(),0);
+			Eigen::MatrixXd y = states(II.reshaped(),1) - lx(II.reshaped(),1);
 
 			// Attraction component
-			MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			Eigen::MatrixXd d = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
 			d = d.array() / width;
-			MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
+			Eigen::MatrixXd mag = ( d.array().tanh() + d.array() / d.array().cosh().pow(2) ) * -1;
 
-			MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
+			Eigen::MatrixXd rr = ( x.array().pow(2) + y.array().pow(2) ).sqrt();
 			for(int i = 0; i < II.size(); ++i) {
 				Fx(II(i)) = mag(i) * x(i) / rr(i);
 				Fy(II(i)) = mag(i) * y(i) / rr(i);
@@ -1060,49 +1060,49 @@ tuple<MatrixXd,MatrixXd,MatrixXd> sph_sim::external_force() {
 @param	DvDt	Matrix of the SPH momentum equation
 @return	rates	Matrix of rates of change in velocity and accelerations.
 */
-MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
+Eigen::MatrixXd sph_sim::sph_compute_rates(const Eigen::MatrixXd& DvDt) {
 	// Break acceleration into 2 components, normal and tangential:
-	MatrixXd v = states(all,seq(3,5));
-	MatrixXd vmag = v.array().pow(2).rowwise().sum().sqrt();
+	Eigen::MatrixXd v = states(Eigen::all,Eigen::seq(3,5));
+	Eigen::MatrixXd vmag = v.array().pow(2).rowwise().sum().sqrt();
 	// Unit vector in the v direction
-	MatrixXd vhat = v.array() / (vmag * MatrixXd::Ones(1,3) ).array();
-	MatrixXi I = find( ( vmag.array() == 0 ).cast<double>() );
+	Eigen::MatrixXd vhat = v.array() / (vmag * Eigen::MatrixXd::Ones(1,3) ).array();
+	Eigen::MatrixXi I = find( ( vmag.array() == 0 ).cast<double>() );
 	vhat(I.reshaped(),0).array() = 1;
 	vhat(I.reshaped(),1).array() = 0;
 	vhat(I.reshaped(),2).array() = 0;
 
 	// Acceleration in the normal and tangent direction
-	MatrixXd a_tan = ( ( DvDt.array() * vhat.array() ).rowwise().sum().matrix() * MatrixXd::Ones(1,3) ).array() * vhat.array();
-	MatrixXd a_norm = DvDt - a_tan;
-	MatrixXd a_tan_mag = a_tan.array().pow(2).rowwise().sum().sqrt();
+	Eigen::MatrixXd a_tan = ( ( DvDt.array() * vhat.array() ).rowwise().sum().matrix() * Eigen::MatrixXd::Ones(1,3) ).array() * vhat.array();
+	Eigen::MatrixXd a_norm = DvDt - a_tan;
+	Eigen::MatrixXd a_tan_mag = a_tan.array().pow(2).rowwise().sum().sqrt();
 
 	// Limit acceleration
 	I = find( ( a_tan_mag.array() > prop.amax.array() ).cast<double>() );
 	// NOTE: Check all these. Also check order of operations. ./ then *, or * then ./ ?
 	if(I.size() != 0 ) {
-		a_tan(I.reshaped(),all) = a_tan(I.reshaped(),all).array() / ( a_tan_mag(I.reshaped(),0) * MatrixXd::Ones(1,3) ).array() * ( prop.amax(I.reshaped(), 0) * MatrixXd::Ones(1,3) ).array();
+		a_tan(I.reshaped(),Eigen::all) = a_tan(I.reshaped(),Eigen::all).array() / ( a_tan_mag(I.reshaped(),0) * Eigen::MatrixXd::Ones(1,3) ).array() * ( prop.amax(I.reshaped(), 0) * Eigen::MatrixXd::Ones(1,3) ).array();
 	}
 
 	// Limit speed
 	I = find( ( vmag.array() > prop.vmax.array() ).cast<double>() );
 	if(I.size() != 0 ) {
-		a_tan(I.reshaped(), all) = (prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
+		a_tan(I.reshaped(), Eigen::all) = (prop.amax(I.reshaped(),0) * Eigen::MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), Eigen::all).array();
 	}
 	I = find( ( vmag.array() < prop.vmin.array() ).cast<double>() );
 	if(I.size() != 0 ) {
-		a_tan(I.reshaped(), all) = (prop.amax(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), all).array();
+		a_tan(I.reshaped(), Eigen::all) = (prop.amax(I.reshaped(),0) * Eigen::MatrixXd::Ones(1,3)).array() * vhat(I.reshaped(), Eigen::all).array();
 	}
 
 	// Limit turning radius
-	MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
+	Eigen::MatrixXd a_norm_mag = a_norm.array().pow(2).rowwise().sum().sqrt();
 	I = find( ( a_norm_mag.array() > vmag.array().pow(2) / prop.turning_radius.array() ).cast<double>() );
 	
 	if(I.size() != 0 ) {
-		MatrixXd temp = vmag(I.reshaped(),0).array().pow(2).array() / prop.turning_radius(I.reshaped(),0).array();
-		a_norm(I.reshaped(), all) = a_norm(I.reshaped(),all).array() / (a_norm_mag(I.reshaped(),0) * MatrixXd::Ones(1,3)).array() * (temp*MatrixXd::Ones(1,3)).array();
+		Eigen::MatrixXd temp = vmag(I.reshaped(),0).array().pow(2).array() / prop.turning_radius(I.reshaped(),0).array();
+		a_norm(I.reshaped(), Eigen::all) = a_norm(I.reshaped(),Eigen::all).array() / (a_norm_mag(I.reshaped(),0) * Eigen::MatrixXd::Ones(1,3)).array() * (temp*Eigen::MatrixXd::Ones(1,3)).array();
 	}
 
-	MatrixXd rates = append_right( states(all,seq(3,5)) , ( a_tan(all,seq(0,2)) + a_norm(all,seq(0,2)) ) );
+	Eigen::MatrixXd rates = append_right( states(Eigen::all,Eigen::seq(3,5)) , ( a_tan(Eigen::all,Eigen::seq(0,2)) + a_norm(Eigen::all,Eigen::seq(0,2)) ) );
 
 	return rates;
 }
@@ -1113,8 +1113,8 @@ MatrixXd sph_sim::sph_compute_rates(const MatrixXd& DvDt) {
 */
 void sph_sim::constrain_vel() {
 	// Max velocity constrain
-	MatrixXd V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
-	MatrixXi I = find( (V.array() > prop.vmax.array() ).cast<double>() );
+	Eigen::MatrixXd V = states(Eigen::all,Eigen::seq(3,5)).array().pow(2).rowwise().sum().sqrt();
+	Eigen::MatrixXi I = find( (V.array() > prop.vmax.array() ).cast<double>() );
 	if(I.size() != 0 ) {
 		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
 		states(I.reshaped(), 4) = states(I.reshaped(), 4).array() / V(I.reshaped(),0).array() * prop.vmax(I.reshaped(),0).array();
@@ -1122,7 +1122,7 @@ void sph_sim::constrain_vel() {
 	}
 
 	// Min velocity constrain
-	V = states(all,seq(3,5)).array().pow(2).rowwise().sum().sqrt();
+	V = states(Eigen::all,Eigen::seq(3,5)).array().pow(2).rowwise().sum().sqrt();
 	I = find( (V.array() < prop.vmin.array() ).cast<double>() );
 	if(I.size() != 0 ) {
 		states(I.reshaped(), 3) = states(I.reshaped(), 3).array() / V(I.reshaped(),0).array() * prop.vmin(I.reshaped(),0).array();
@@ -1164,9 +1164,9 @@ Each particle is stored in one row:
 	states = [ x1 y1 z1 u1 v1 w1 ]
 			 [		 ...		]
 
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_states() {
+Eigen::MatrixXd sph_sim::get_states() {
 	return states;
 }
 
@@ -1201,44 +1201,44 @@ int sph_sim::get_nrd() {
 
 /// Return a column vector containing the x positions of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_x() {
+Eigen::MatrixXd sph_sim::get_x() {
 	return states.col(0);
 }
 /// Return a column vector containing the y positions of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_y() {
+Eigen::MatrixXd sph_sim::get_y() {
 	return states.col(1);
 }
 /// Return a column vector containing the z positions of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_z() {
+Eigen::MatrixXd sph_sim::get_z() {
 	return states.col(2);
 }
 /// Return a column vector containing the u velocities of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_u() {
+Eigen::MatrixXd sph_sim::get_u() {
 	return states.col(3);
 }
 /// Return a column vector containing the v velocities of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_v() {
+Eigen::MatrixXd sph_sim::get_v() {
 	return states.col(4);
 }
 /// Return a column vector containing the w velocities of all the SPH particles
 /**
-@return	MatrixXd
+@return	Eigen::MatrixXd
 */
-MatrixXd sph_sim::get_w() {
+Eigen::MatrixXd sph_sim::get_w() {
 	return states.col(5);
 }
 

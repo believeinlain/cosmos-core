@@ -12,10 +12,10 @@ void simulation::init_simulation(int tf/*=100*/) {
 	// n x 100 matrix
 	trackMax = 100;
 	thead = 0;
-	x = SPH.get_x() * MatrixXd::Ones(1,trackMax);
-	y = SPH.get_y() * MatrixXd::Ones(1,trackMax);
-	u = SPH.get_u() * MatrixXd::Ones(1,trackMax);
-	v = SPH.get_v() * MatrixXd::Ones(1,trackMax);
+	x = SPH.get_x() * Eigen::MatrixXd::Ones(1,trackMax);
+	y = SPH.get_y() * Eigen::MatrixXd::Ones(1,trackMax);
+	u = SPH.get_u() * Eigen::MatrixXd::Ones(1,trackMax);
+	v = SPH.get_v() * Eigen::MatrixXd::Ones(1,trackMax);
 
 	// Used for plotting the vehicle paths
 	trackt = vector<double>(100);
@@ -129,10 +129,10 @@ void simulation::start_simulation() {
 @param	varname		Variable name to assign the vector. Used by gnuplot.
 @return string
 */
-string gnuvec(const MatrixXd& mat, const string& varname) {
+string gnuvec(const Eigen::MatrixXd& mat, const string& varname) {
 	ostringstream o;
 	o << varname << "=\"";
-	for(auto it : mat(all,last))
+	for(auto it : mat(Eigen::all,Eigen::last))
 		o << it << " ";
 	o << "\"";
 	return o.str();
@@ -148,7 +148,7 @@ string gnuvec(const MatrixXd& mat, const string& varname) {
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<double>& trackt, const MatrixXd& lx, const MatrixXd& obx) {
+void simulation::plot_veh(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y, const vector<double>& trackt, const Eigen::MatrixXd& lx, const Eigen::MatrixXd& obx) {
 	gp.sendLine("reset", true);
 	gp.sendLine("set title \"Smoothed Particle Hydrodynamics for Agent Control\\n{/*0.85Time = " +to_string(trackt[thead]) + "}\" font \"Arial,16\"", true);
 	gp.sendLine("set parametric", true);
@@ -164,7 +164,7 @@ void simulation::plot_veh(const MatrixXd& x, const MatrixXd& y, const vector<dou
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_points(const MatrixXd& x, const MatrixXd& y) {
+void simulation::plot_points(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y) {
 	for(int i = 0; i < x.rows(); ++i) {
 		// Vehicle
 		if(i < SPH.get_nveh()) {
@@ -189,7 +189,7 @@ void simulation::plot_points(const MatrixXd& x, const MatrixXd& y) {
 @param	lx			Matrix containing [x y] positions of the loiter circles
 @return n/a
 */
-void simulation::plot_lx(const MatrixXd& lx) {
+void simulation::plot_lx(const Eigen::MatrixXd& lx) {
 	if(lx.size() != 0) {
 		for(auto row : lx.rowwise()) {
 			gp.sendLine("set label at " + to_string(row(0)) + "," + to_string(row(1)) + " point pointtype 3 pointsize 2 lt rgb \"goldenrod\"", true);
@@ -204,7 +204,7 @@ void simulation::plot_lx(const MatrixXd& lx) {
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y) {
+void simulation::plot_trails(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y) {
 	for(int i = 0; i < x.rows(); ++i) {
 		gp.sendLine(gnutrail(x.row(i),"X"+to_string(i)), true);
 		gp.sendLine(gnutrail(y.row(i),"Y"+to_string(i)), true);
@@ -231,7 +231,7 @@ void simulation::plot_trails(const MatrixXd& x, const MatrixXd& y) {
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
-string simulation::gnutrail(const RowVectorXd& pos, const string& varname) {
+string simulation::gnutrail(const Eigen::RowVectorXd& pos, const string& varname) {
 	ostringstream o;
 	o << varname << "=\"";
 	for(int i = 0; i < pos.size(); ++i) {
