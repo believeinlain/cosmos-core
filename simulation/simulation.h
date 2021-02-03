@@ -8,7 +8,7 @@
 #include "gnuplot.h"
 #include "sph.h"
 
-//#include "agent/agentclass.h"
+#include "agent/agentclass.h"
 
 class simulation {
 private:

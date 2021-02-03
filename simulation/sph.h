@@ -10,7 +10,7 @@
 #include "Eigen/Sparse"
 #include "sph_structs.h"
 
-//using namespace Eigen;
+
 using namespace std;
 
 

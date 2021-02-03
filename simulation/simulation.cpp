@@ -1,5 +1,6 @@
 #include "simulation.h"
 
+
 /// Constructor
 simulation::simulation(int tf/*=100*/) : tf(tf) {
 	init_simulation();
@@ -45,7 +46,7 @@ void simulation::init_simulation(int tf/*=100*/) {
 
 /// Start the simulation loop
 void simulation::start_simulation() {
-	GnuplotPipe gp;
+	//GnuplotPipe gp;
 
 
 	/*
