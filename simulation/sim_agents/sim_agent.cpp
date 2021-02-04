@@ -33,6 +33,7 @@
 #include "agent/agentclass.h"
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 // The request function prototype
@@ -40,16 +41,31 @@ int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 
 // ensure the Agent constructor creates only one instance per process
 static Agent *agent;
-const int agent_id = 2;
-string node_name = "sat_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
-string agent_name = "agent_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
-string node_agent_name = "["+node_name+":"+agent_name+"]";
-
+string node_name;
+string agent_name;
+string node_agent_name;
 string request = "are_you_out_there";
 string response = "";
 
 int main(int argc, char **argv)
 {
+	int agent_id;
+
+	// Run agent from the command line, with an int id
+	if(argc == 2) {
+		std::istringstream ss(argv[1]);
+		if (!(ss >> agent_id) || !ss.eof()) {
+			std::cerr << "Argument " << argv[1] << " is invalid, please provide an int id as argument to this agent." << endl;
+			exit(1);
+		}
+	} else {
+		std::cerr << "Please provide an int id as argument to this agent" << endl;
+		exit(1);
+	}
+	node_name = "sat_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
+	agent_name = "agent_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
+	node_agent_name = "["+node_name+":"+agent_name+"]";
+
 	// construct agent
 	cout << node_agent_name << " starting..."<<endl;
 	agent = new Agent(node_name, agent_name, 1.);
@@ -74,15 +90,15 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), request, response, 2.);
+		agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 		if(response.size())	{
-			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
+			cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			// ask for their location
 			response.clear();
-			//agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), "get_position " + time, response, 2.);
+			//agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
 		} else {
-			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+			cout<<left<<setw(40)<<"\t[world:controller]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 		// Sleep for 5 sec
 		COSMOS_SLEEP(5.);

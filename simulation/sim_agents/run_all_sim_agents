@@ -1,0 +1,19 @@
+# Create a new tmux session
+# install with sudo apt install tmux if you don't have it
+tmux new-session -d -s sphsim "/usr/bin/env bash -i"
+tmux rename-window sphsim
+tmux select-window -t sphsim:0
+
+# Open 9 new instances of agents
+for i in {9..1}
+do
+  tmux split-window -d "../../build/simulation/sim_agents/sim_agent ${i}"
+  tmux select-layout tiled
+done
+
+# Kill the bash-pane, leaving only the agents running
+tmux kill-pane
+tmux select-layout tiled
+
+# Attach the session
+tmux -2 attach-session -t sphsim
