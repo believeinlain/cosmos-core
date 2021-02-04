@@ -7,8 +7,9 @@ tmux select-window -t sphsim:0
 # Open 9 new instances of agents
 for i in {9..1}
 do
-  tmux split-window -d "../../build/simulation/sim_agents/sim_agent ${i}"
-  tmux select-layout tiled
+	# Note: change this path if it's not correct
+	tmux split-window -d "../../build/simulation/sim_agents/sim_agent ${i}"
+	tmux select-layout tiled
 done
 
 # Kill the bash-pane, leaving only the agents running

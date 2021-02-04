@@ -12,6 +12,8 @@
 
 class simulation {
 private:
+	/// Pointer to simulation control agent
+	Agent *agent;
 	/// SPH object
 	sph_sim SPH;
 	/// Simulation parameters
@@ -56,10 +58,13 @@ private:
 	/// Track the index of the head of the matrix
 	int thead;
 
+	/// Number of agents in the simulation
+	int num_agents;
+
 	/// Initialize the simulation parameters
 	void init_simulation(int tf=100);
 
-	/// Find the agents to use in the simulation
+
 
 	/// Create a visualization for the simulation using gnuplot
 	/**
@@ -111,9 +116,13 @@ private:
 
 public:
 	/// Constructor
-	simulation(int tf=100);
+	simulation(Agent *agent, int tf=100);
 	/// Start the simulation loop
-	void start_simulation(Agent* agent);
+	void start_simulation();
+	/// Check that all agents in the simulation are running
+	bool all_sim_agents_running();
+	/// Initialize sim agents
+	void init_sim_agents();
 };
 
 

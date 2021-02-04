@@ -16,9 +16,9 @@ int main()
 	agent = new Agent(node_name, agent_name, 1.);
 	
 	// Simulation class
-	simulation sim;
+	simulation sim(agent);
 	cout << "Starting SPH simulation..." << endl;
-	sim.start_simulation(agent);
+	sim.start_simulation();
 
 	cout << "Ending SPH simulation." << endl;
 }

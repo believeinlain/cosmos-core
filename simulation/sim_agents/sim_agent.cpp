@@ -36,8 +36,9 @@
 #include <sstream>
 #include <string>
 
-// The request function prototype
+// Function prototypes
 int32_t are_you_out_there(string &request, string &response, Agent *cdata);
+int32_t set_initial_time(string &request, string &response, Agent *cdata);
 
 // ensure the Agent constructor creates only one instance per process
 static Agent *agent;
@@ -46,6 +47,9 @@ string agent_name;
 string node_agent_name;
 string request = "are_you_out_there";
 string response = "";
+
+// Simulation parameters
+int t0;
 
 int main(int argc, char **argv)
 {
@@ -62,8 +66,8 @@ int main(int argc, char **argv)
 		std::cerr << "Please provide an int id as argument to this agent" << endl;
 		exit(1);
 	}
-	node_name = "sat_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
-	agent_name = "agent_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id); 
+	node_name = "sat_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id);
+	agent_name = "agent_" + std::string(3-to_string(agent_id).length(), '0') + to_string(agent_id);
 	node_agent_name = "["+node_name+":"+agent_name+"]";
 
 	// construct agent
@@ -82,6 +86,7 @@ int main(int argc, char **argv)
 
 	// add custom request functions for this agent
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
+	agent->add_request("set_initial_time", set_initial_time, "\n\t\trequest to set a simulation parameter, initial time");
 
 	cosmosstruc* c = agent->cinfo;
 
@@ -107,10 +112,26 @@ int main(int argc, char **argv)
 }
 
 
-
-int32_t are_you_out_there(string & request, string &response, Agent *)
-{
+/// Basic role call function
+int32_t are_you_out_there(string & request, string &response, Agent *) {
 	// Send response back to the agent who made the request
 	response = "Yes!  I am the one they call " + node_agent_name + ".";
+	return 0;
+}
+
+/// Set simulation initial time
+int32_t set_initial_time(string & request, string &response, Agent *) {
+	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+
+	// remove function call and space
+	request.erase(0,17);
+	
+	// read in mjdtime
+	stringstream ss;
+	ss<<request;
+	ss>>t0;
+	cout << "Initial time t0 set to: " << to_string(t0) << endl;
+
+
 	return 0;
 }

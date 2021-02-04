@@ -2,7 +2,7 @@
 
 
 /// Constructor
-simulation::simulation(int tf/*=100*/) : tf(tf) {
+simulation::simulation(Agent *agent, int tf/*=100*/) : agent(agent), tf(tf) {
 	init_simulation();
 }
 
@@ -40,7 +40,7 @@ void simulation::init_simulation(int tf/*=100*/) {
 			22,-6;
 	
 	// Initialize agents
-	// Find all agents
+	num_agents = 9;
 }
 string request = "are_you_out_there";
 string response = "";
@@ -51,33 +51,9 @@ int32_t are_you_out_there(string & request, string &response, Agent *agent)
 	return 0;
 }
 
-// Make sure all agents in the simulation are running
-bool all_sim_agents_running(Agent *agent) {
-	cout << "Attempting to find all the agents..." << endl;
-	response.clear();
-	agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), request, response, 2.);
-	if(response.size())	{
-		cout << "agent_001 found" << endl;
-	} else {
-		cout << "Cannot find agent_001" << endl;
-		return false;
-	}
-	response.clear();
-	agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), request, response, 2.);
-	if(response.size())	{
-		cout << "agent_002 found" << endl;
-	} else {
-		cout << "Cannot find agent_002" << endl;
-		return false;
-	}
-	response.clear();
-	cout << "All agents found!" << endl;
-	return true;
-}
-
 
 /// Start the simulation loop
-void simulation::start_simulation(Agent* agent) {
+void simulation::start_simulation() {
 	//GnuplotPipe gp;
 	string node_agent_name = "["+agent->nodeName+":"+agent->agentName+"]";
 	cout << node_agent_name << " starting..."<<endl;
@@ -89,17 +65,20 @@ void simulation::start_simulation(Agent* agent) {
 			<<cosmos_error_string(agent->last_error())<<endl;
 		exit(1);
 	} else {
-		cout << node_agent_name << " started."<<endl;
+		cout << node_agent_name << " started."<<endl<<endl;
 	}
 
-	// Attempt contact with all other agents of the simulation. Exit if not all agents are running.
-	if(!all_sim_agents_running(agent)) {
-		exit(1);
-	}
-	
 	// Add basic request function
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
-	
+
+	// Attempt contact with all other agents of the simulation. Exit if not all agents are running.
+	if(!all_sim_agents_running()) {
+		exit(1);
+	}
+
+	// Initialize simulation agents
+	init_sim_agents();
+
 	// Simulation loop
 	while (agent->running()) {
 
@@ -192,6 +171,51 @@ void simulation::start_simulation(Agent* agent) {
 		thead = (thead + 1) % trackMax;
 	}
 	*/
+}
+
+
+/// Check that all agents in the simulation are running
+/**
+@return		bool
+*/
+bool simulation::all_sim_agents_running() {
+	cout << "Attempting to find all the agents..." << endl;
+	response.clear();
+	for(int i = 1; i <= num_agents; ++i) {
+		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
+		if(response.size())	{
+			cout << "[" << node_name << ":" << agent_name << "] found" << endl;
+		} else {
+			cout << "Cannot find " << "[" << node_name << ":" << agent_name << "]" << endl;
+			return false;
+		}
+		response.clear();
+	}
+	cout << "All agents found!" << endl << endl;
+	return true;
+}
+
+/// Initialize sim agents
+/**
+@return n/a
+*/
+void simulation::init_sim_agents() {
+	response.clear();
+	// Initialize initial times
+	for(int i = 1; i <= num_agents; ++i) {
+		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
+		if(response.size())	{
+			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time 0", response, 2.);
+		} else {
+			std::cerr << "Cannot find " << "[" << node_name << ":" << agent_name << "]" << endl;
+			exit(1);
+		}
+		response.clear();
+	}
 }
 
 /// Convert a vector into a gnuplot-parsable string
