@@ -42,16 +42,40 @@ void simulation::init_simulation(int tf/*=100*/) {
 	// Initialize agents
 	// Find all agents
 }
-
-int32_t are_you_out_there(string & request, string &response, Agent *)
+string request = "are_you_out_there";
+string response = "";
+int32_t are_you_out_there(string & request, string &response, Agent *agent)
 {
 	// Send response back to the agent who made the request
-	response = "Yes!  I am the one they call ";// + node_agent_name + ".";
+	response = "Yes!  I am the one they call [" + agent->nodeName + ":" + agent->agentName + "].";
 	return 0;
 }
 
-string request = "are_you_out_there";
-string response = "";
+// Make sure all agents in the simulation are running
+bool all_sim_agents_running(Agent *agent) {
+	cout << "Attempting to find all the agents..." << endl;
+	response.clear();
+	agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), request, response, 2.);
+	if(response.size())	{
+		cout << "agent_001 found" << endl;
+	} else {
+		cout << "Cannot find agent_001" << endl;
+		return false;
+	}
+	response.clear();
+	agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), request, response, 2.);
+	if(response.size())	{
+		cout << "agent_002 found" << endl;
+	} else {
+		cout << "Cannot find agent_002" << endl;
+		return false;
+	}
+	response.clear();
+	cout << "All agents found!" << endl;
+	return true;
+}
+
+
 /// Start the simulation loop
 void simulation::start_simulation(Agent* agent) {
 	//GnuplotPipe gp;
@@ -67,11 +91,17 @@ void simulation::start_simulation(Agent* agent) {
 	} else {
 		cout << node_agent_name << " started."<<endl;
 	}
-	
 
+	// Attempt contact with all other agents of the simulation. Exit if not all agents are running.
+	if(!all_sim_agents_running(agent)) {
+		exit(1);
+	}
+	
+	// Add basic request function
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
 	
-	while (true) {
+	// Simulation loop
+	while (agent->running()) {
 
 		cout<<node_agent_name<<" running..."<<endl;
 
