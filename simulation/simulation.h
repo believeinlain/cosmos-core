@@ -113,7 +113,7 @@ public:
 	/// Constructor
 	simulation(int tf=100);
 	/// Start the simulation loop
-	void start_simulation();
+	void start_simulation(Agent* agent);
 };
 
 

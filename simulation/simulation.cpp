@@ -43,11 +43,51 @@ void simulation::init_simulation(int tf/*=100*/) {
 	// Find all agents
 }
 
+int32_t are_you_out_there(string & request, string &response, Agent *)
+{
+	// Send response back to the agent who made the request
+	response = "Yes!  I am the one they call ";// + node_agent_name + ".";
+	return 0;
+}
 
+string request = "are_you_out_there";
+string response = "";
 /// Start the simulation loop
-void simulation::start_simulation() {
+void simulation::start_simulation(Agent* agent) {
 	//GnuplotPipe gp;
+	string node_agent_name = "["+agent->nodeName+":"+agent->agentName+"]";
+	cout << node_agent_name << " starting..."<<endl;
+	
+	// exit with error if unable to start agent
+	if(agent->last_error() < 0) {
+		cerr<<"error: unable to start "<<node_agent_name
+			<<" ("<<agent->last_error()<<") "
+			<<cosmos_error_string(agent->last_error())<<endl;
+		exit(1);
+	} else {
+		cout << node_agent_name << " started."<<endl;
+	}
+	
 
+	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
+	
+	while (true) {
+
+		cout<<node_agent_name<<" running..."<<endl;
+
+		agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), request, response, 2.);
+		if(response.size())	{
+			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
+			// ask for their location
+			response.clear();
+			//agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), "get_position " + time, response, 2.);
+			cout<<"\n"<<response<<endl;
+		} else {
+			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+		}
+		// Sleep for 5 sec
+		COSMOS_SLEEP(5.);
+	}
 
 	/*
 

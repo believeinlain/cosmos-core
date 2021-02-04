@@ -74,15 +74,15 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), request, response, 2.);
+		agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 		if(response.size())	{
-			cout<<left<<setw(40)<<"\t[sat_002:agent_002]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
+			cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 			// ask for their location
 			response.clear();
 			//agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), "get_position " + time, response, 2.);
 			cout<<"\n"<<response<<endl;
 		} else {
-			cout<<left<<setw(40)<<"\t[sat_002:agent_002]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+			cout<<left<<setw(40)<<"\t[world:controller]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 		}
 		// Sleep for 5 sec
 		COSMOS_SLEEP(5.);
