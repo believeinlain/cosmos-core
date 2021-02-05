@@ -38,6 +38,7 @@
 
 // Function prototypes
 int32_t are_you_out_there(string &request, string &response, Agent *cdata);
+int32_t get_initial_time(string &request, string &response, Agent *cdata);
 int32_t set_initial_time(string &request, string &response, Agent *cdata);
 
 // ensure the Agent constructor creates only one instance per process
@@ -49,7 +50,8 @@ string request = "are_you_out_there";
 string response = "";
 
 // Simulation parameters
-int t0;
+/// Initial time
+double t0;
 
 int main(int argc, char **argv)
 {
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
 
 	// add custom request functions for this agent
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
+	agent->add_request("get_initial_time", get_initial_time, "\n\t\trequest to get a simulation parameter, initial time");
 	agent->add_request("set_initial_time", set_initial_time, "\n\t\trequest to set a simulation parameter, initial time");
 
 	cosmosstruc* c = agent->cinfo;
@@ -116,6 +119,13 @@ int main(int argc, char **argv)
 int32_t are_you_out_there(string & request, string &response, Agent *) {
 	// Send response back to the agent who made the request
 	response = "Yes!  I am the one they call " + node_agent_name + ".";
+	return 0;
+}
+
+/// Get simulation initial time
+int32_t get_initial_time(string &request, string &response, Agent *agent) {
+	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+	response = to_string(t0);
 	return 0;
 }
 

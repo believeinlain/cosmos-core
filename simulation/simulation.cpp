@@ -218,6 +218,37 @@ void simulation::init_sim_agents() {
 	}
 }
 
+/// Send a request to every agent in the simulation, returns a vector of responses
+vector<string> simulation::send_req_to_all_agents(string req) {
+	vector<string> all_responses;
+	for(int i = 1; i <= num_agents; ++i) {
+		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
+		string response = "";
+		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
+		if(response.size())	{
+			agent->send_request(agent->find_agent(node_name, agent_name, 2.), req, response, 2.);
+			all_responses.push_back(response);
+		} else {
+			std::cerr << "Cannot find " << "[" << node_name << ":" << agent_name << "]" << endl;
+			exit(1);
+		}
+	}
+	return all_responses;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /// Convert a vector into a gnuplot-parsable string
 /**
 @param	mat			Row/column vector to parse
@@ -236,7 +267,7 @@ string gnuvec(const Eigen::MatrixXd& mat, const string& varname) {
 /// Create a visualization for the simulation using gnuplot
 /**
 @param	x			Matrix of history of x positions of all SPH particles
-@param	y			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of y positions of all SPH particles
 @param	trackt		Vector of time steps
 @param	lx			Matrix containing [x y] positions of the loiter circles
 @param	obx			Matrix containing [x y] positions of the obstacles
@@ -255,7 +286,7 @@ void simulation::plot_veh(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y, co
 /// Plot the SPH particles
 /**
 @param	x			Matrix of history of x positions of all SPH particles
-@param	y			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of y positions of all SPH particles
 @param	thead		Index position of the head of the vectors
 @return n/a
 */
@@ -295,7 +326,7 @@ void simulation::plot_lx(const Eigen::MatrixXd& lx) {
 /// Display trail for each particle
 /**
 @param	x			Matrix of history of x positions of all SPH particles
-@param	y			Matrix of history of x positions of all SPH particles
+@param	y			Matrix of history of y positions of all SPH particles
 @param	thead		Index position of the head of the vectors
 @return n/a
 */

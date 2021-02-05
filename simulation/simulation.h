@@ -69,7 +69,7 @@ private:
 	/// Create a visualization for the simulation using gnuplot
 	/**
 	@param	x			Matrix of history of x positions of all SPH particles
-	@param	y			Matrix of history of x positions of all SPH particles
+	@param	y			Matrix of history of y positions of all SPH particles
 	@param	trackt		Vector of time steps
 	@param	lx			Matrix containing [x y] positions of the loiter circles
 	@param	obx			Matrix containing [x y] positions of the obstacles
@@ -81,7 +81,7 @@ private:
 	/// Plot the SPH particles
 	/**
 	@param	x			Matrix of history of x positions of all SPH particles
-	@param	y			Matrix of history of x positions of all SPH particles
+	@param	y			Matrix of history of y positions of all SPH particles
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
@@ -97,7 +97,7 @@ private:
 	/// Display trail for each particle
 	/**
 	@param	x			Matrix of history of x positions of all SPH particles
-	@param	y			Matrix of history of x positions of all SPH particles
+	@param	y			Matrix of history of y positions of all SPH particles
 	@param	thead		Index position of the head of the vectors
 	@return n/a
 	*/
@@ -123,6 +123,8 @@ public:
 	bool all_sim_agents_running();
 	/// Initialize sim agents
 	void init_sim_agents();
+	/// Send a request to all agents in the simulation
+	vector<string> send_req_to_all_agents(string request);
 };
 
 
