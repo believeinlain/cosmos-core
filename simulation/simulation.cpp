@@ -205,7 +205,9 @@ bool simulation::all_sim_agents_running() {
 */
 void simulation::init_sim_agents() {
 	response.clear();
-	// Initialize initial times
+	// Initialize initial times and states
+	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
+	std::vector<double> y = { 5,5,5,  0,0,0, -5,-5,-5};
 	t0 = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	for(int i = 1; i <= num_agents; ++i) {
@@ -214,6 +216,22 @@ void simulation::init_sim_agents() {
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
 		if(response.size())	{
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
+			/*json11::Json json = json11::Json::object {
+					{ "x_position", x[i-1] },
+					{ "y_position", y[i-1] },
+					{ "z_position", 0 },
+					{ "x_velocity", 0 },
+					{ "y_velocity", 0 },
+					{ "z_velocity", 0 }
+				};*/
+			stringstream ss;
+			ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << x[i-1] << ","
+				<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << y[i-1] << ","
+				<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
+				<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
+				<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
+				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << "}";
+			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + ss.str(), response, 2.);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
