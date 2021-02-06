@@ -194,7 +194,8 @@ bool simulation::all_sim_agents_running() {
 		}
 		response.clear();
 	}
-	cout << "All agents found!" << endl << endl;
+	if(out)
+		cout << "All agents found!" << endl << endl;
 	return out;
 }
 
@@ -206,15 +207,15 @@ void simulation::init_sim_agents() {
 	response.clear();
 	// Initialize initial times
 	t0 = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
-	cout << to_string(t0) << endl;
+	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	for(int i = 1; i <= num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
 		if(response.size())	{
-			this_thread::sleep_for (chrono::milliseconds(25));
-			double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
+			this_thread::sleep_for (chrono::milliseconds(10));
+			t += 0.01;
 		} else {
 			std::cerr << "Cannot find " << "[" << node_name << ":" << agent_name << "]" << endl;
 			exit(1);
@@ -371,4 +372,13 @@ string simulation::gnutrail(const Eigen::RowVectorXd& pos, const string& varname
 	}
 	o << "\"";
 	return o.str();
+}
+
+
+
+
+
+/// Get initial time
+double simulation::get_initial_time() {
+	return t0;
 }

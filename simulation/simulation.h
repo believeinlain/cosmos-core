@@ -125,6 +125,11 @@ public:
 	void init_sim_agents();
 	/// Send a request to all agents in the simulation
 	vector<string> send_req_to_all_agents(string request);
+
+
+
+	/// Get initial time
+	double get_initial_time();
 };
 
 
