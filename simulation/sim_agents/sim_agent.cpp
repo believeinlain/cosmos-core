@@ -106,11 +106,12 @@ int main(int argc, char **argv)
 		if(run) {
 			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 			if(response.size())	{
+				// Request state vectors
+				
+				// Calculate next waypoint via SPH
 				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 				// ask for their location
 				response.clear();
-				//agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), "get_position " + time, response, 2.);
-				cout<<"\n"<<response<<endl;
 			} else {
 				cout<<left<<setw(40)<<"\t[world:controller]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
 				run = false;
@@ -166,7 +167,7 @@ int32_t set_run_state(string &request, string &response, Agent *) {
 	// read in request arg
 	istringstream ss(request);
 	ss>>std::boolalpha>>run;
-	// dt
-	sleeptime = 0.01;
+	// how often to run the sph update, for our purposes doesn't necessarily have to be equal to dt
+	sleeptime = 0.5;
 	return 0;
 }

@@ -263,7 +263,11 @@ vector<string> simulation::send_req_to_all_agents(string req) {
 }
 
 
-
+/// Get all state vectors
+int32_t get_state_vectors(string &request, string &response, Agent *agent) {
+	
+	return 0;
+}
 
 
 
