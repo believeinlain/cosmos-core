@@ -40,6 +40,7 @@
 int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 int32_t get_initial_time(string &request, string &response, Agent *cdata);
 int32_t set_initial_time(string &request, string &response, Agent *cdata);
+int32_t set_run_state(string &request, string &response, Agent *cdata);
 
 // ensure the Agent constructor creates only one instance per process
 static Agent *agent;
@@ -48,6 +49,8 @@ string agent_name;
 string node_agent_name;
 string request = "are_you_out_there";
 string response = "";
+bool run = false;
+double sleeptime = 5.;
 
 // Simulation parameters
 /// Initial time
@@ -90,6 +93,7 @@ int main(int argc, char **argv)
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
 	agent->add_request("get_initial_time", get_initial_time, "\n\t\trequest to get a simulation parameter, initial time");
 	agent->add_request("set_initial_time", set_initial_time, "\n\t\trequest to set a simulation parameter, initial time");
+	agent->add_request("set_run_state", set_run_state, "\n\t\trequest to set the run state");
 
 	cosmosstruc* c = agent->cinfo;
 
@@ -98,18 +102,24 @@ int main(int argc, char **argv)
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
-		if(response.size())	{
-			cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
-			// ask for their location
-			response.clear();
-			//agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), "get_position " + time, response, 2.);
-			cout<<"\n"<<response<<endl;
-		} else {
-			cout<<left<<setw(40)<<"\t[world:controller]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+		// Run if running state is true, set to true by init_sim_agents() in the simulation
+		if(run) {
+			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
+			if(response.size())	{
+				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
+				// ask for their location
+				response.clear();
+				//agent->send_request(agent->find_agent("sat_002", "agent_002", 2.), "get_position " + time, response, 2.);
+				cout<<"\n"<<response<<endl;
+			} else {
+				cout<<left<<setw(40)<<"\t[world:controller]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+				run = false;
+				sleeptime = 5.;
+			}
 		}
+		
 		// Sleep for 5 sec
-		COSMOS_SLEEP(5.);
+		COSMOS_SLEEP(sleeptime);
 	}
 	return 0;
 }
@@ -143,5 +153,20 @@ int32_t set_initial_time(string & request, string &response, Agent *) {
 	cout << "Initial time t0 set to: " << to_string(t0) << endl;
 
 
+	return 0;
+}
+
+/// Set run state
+int32_t set_run_state(string &request, string &response, Agent *) {
+	cout<<"\tincoming request          = <"<<request<<">"<<endl;
+
+	// remove function call and space
+	request.erase(0,14);
+
+	// read in request arg
+	istringstream ss(request);
+	ss>>std::boolalpha>>run;
+	// dt
+	sleeptime = 0.01;
 	return 0;
 }

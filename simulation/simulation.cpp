@@ -232,6 +232,7 @@ void simulation::init_sim_agents() {
 				<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << "}";
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + ss.str(), response, 2.);
+			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
