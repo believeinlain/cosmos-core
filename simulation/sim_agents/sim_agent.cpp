@@ -51,14 +51,12 @@ string request = "are_you_out_there";
 string response = "";
 bool run = false;
 double sleeptime = 5.;
+int agent_id;
 
 // Simulation parameters
-/// Initial time
-double t0;
 
 int main(int argc, char **argv)
 {
-	int agent_id;
 
 	// Run agent from the command line, with an int id
 	if(argc == 2) {
@@ -138,7 +136,7 @@ int32_t are_you_out_there(string & request, string &response, Agent *) {
 /// Get simulation initial time
 int32_t get_initial_time(string &request, string &response, Agent *agent) {
 	cout<<"\tincoming request          = <"<<request<<">"<<endl;
-	response = to_string(t0);
+	response = to_string(agent->cinfo->get_value<double>("state["+to_string(agent_id-1)+"].timestamp"));
 	return 0;
 }
 
@@ -152,9 +150,9 @@ int32_t set_initial_time(string & request, string &response, Agent *) {
 	// read in mjdtime
 	stringstream ss;
 	ss<<request;
+	double t0;
 	ss>>t0;
-	cout << "Initial time t0 set to: " << to_string(t0) << endl;
-
+	agent->cinfo->set_value<double>("state["+to_string(agent_id-1)+"].timestamp", t0);
 
 	return 0;
 }

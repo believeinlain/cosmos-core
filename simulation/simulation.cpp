@@ -215,6 +215,7 @@ void simulation::init_sim_agents() {
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
 		if(response.size())	{
+			cout << to_string(t) << endl;
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
 			/*json11::Json json = json11::Json::object {
 					{ "x_position", x[i-1] },
