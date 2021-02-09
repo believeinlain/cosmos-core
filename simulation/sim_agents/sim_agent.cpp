@@ -107,7 +107,9 @@ int main(int argc, char **argv)
 			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 			if(response.size())	{
 				// Request state vectors
-				
+				response.clear();
+				agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
+
 				// Calculate next waypoint via SPH
 				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 				// ask for their location
