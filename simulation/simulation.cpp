@@ -210,12 +210,13 @@ void simulation::init_sim_agents() {
 	std::vector<double> y = { 5,5,5,  0,0,0, -5,-5,-5};
 	t0 = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
+	agent->cinfo->get_pointer<vector<statestruct>>("state")->resize(num_agents);
 	for(int i = 1; i <= num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
 		if(response.size())	{
-			cout << to_string(t) << endl;
+			// Set initial time
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
 			/*json11::Json json = json11::Json::object {
 					{ "x_position", x[i-1] },
@@ -231,9 +232,16 @@ void simulation::init_sim_agents() {
 				<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << "}";
+				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
+				<< 	 "\"timestamp\":" << setprecision(numeric_limits<double>::digits10) << t << "}";
+			// Set state vector
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + ss.str(), response, 2.);
+			// Set run state to true
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
+			// Set world simulator state
+			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].x_position", x[i-1]);
+			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].y_position", y[i-1]);
+			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].timestamp", t);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
