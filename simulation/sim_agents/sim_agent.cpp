@@ -58,7 +58,7 @@ bool run = false;
 double sleeptime = 5.;
 int agent_id;
 /// SPH object
-sph_sim SPH;
+//sph_sim SPH;
 /// Simulation parameters
 param_struct param;
 /// Simulation group configurations
@@ -95,6 +95,9 @@ int main(int argc, char **argv)
 	cout << node_agent_name << " starting..."<<endl;
 	agent = new Agent(node_name, agent_name, 1.);
 
+	// SPH object
+	sph_sim SPH;
+
 	// exit with error if unable to start agent
 	if(agent->last_error() < 0) {
 		cerr<<"error: unable to start "<<node_agent_name
@@ -112,7 +115,7 @@ int main(int argc, char **argv)
 
 	cosmosstruc* c = agent->cinfo;
 
-	//init_sim_agent();
+	init_sim_agent();
 
 	// agent loop
 	while (agent->running()) {
@@ -120,7 +123,7 @@ int main(int argc, char **argv)
 		cout<<node_agent_name<<" running..."<<endl;
 
 		// Run if running state is true, set to true by init_sim_agents() in the simulation
-		/*if(run) {
+		if(run) {
 			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 			if(response.size())	{
 				// Request state vectors
@@ -131,10 +134,10 @@ int main(int argc, char **argv)
 				HCL(response);
 
 				// Update sph state vector to current positions
-				SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
+				//SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
 
 				// Calculate next waypoint via SPH
-				SPH.sph_sim_step(rdx,lx,lR);
+				//SPH.sph_sim_step(rdx,lx,lR);
 
 				// Send world controller updated agent state
 				//agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
@@ -148,7 +151,7 @@ int main(int argc, char **argv)
 				run = false;
 				sleeptime = 5.;
 			}
-		}*/
+		}
 		
 		// Sleep for 5 sec
 		COSMOS_SLEEP(sleeptime);
@@ -187,9 +190,9 @@ int32_t set_run_state(string &request, string &response, Agent *) {
 }
 
 void init_sim_agent() {
-	param = SPH.get_param();
-	group_conf = SPH.get_group_conf();
-	group_conf.num_veh(0) = 9;
+	//param = SPH.get_param();
+	//group_conf = SPH.get_group_conf();
+	//group_conf.num_veh(0) = 9;
 	// Loiter circle position
 	lx.resize(1,2);
 	lx << 28,0;
@@ -226,3 +229,9 @@ void HCL(string &state) {
 		cout << agent->cinfo->get_json<statestruct>("state") << endl;
 	}
 }
+
+
+
+// Notes to self:
+// Important to declare SPH object after new Agent is called, otherwise segfaults. Probably has to do with
+// how agents need to have their own process id or something. Needs to be the first object created in the executable, or something.

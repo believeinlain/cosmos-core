@@ -191,7 +191,7 @@ bool simulation::all_sim_agents_running() {
 			//cout << "[" << node_name << ":" << agent_name << "] found" << endl;
 		} else {
 			cout << "Cannot find " << "[" << node_name << ":" << agent_name << "]" << endl;
-			out = true;
+			out = false;
 		}
 		response.clear();
 	}
