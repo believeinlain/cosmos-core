@@ -64,6 +64,9 @@ private:
 	/// Initialize the simulation parameters
 	void init_simulation(int tf=100);
 
+	/// Agents will send world controller their sph-updated states
+	int32_t send_world_new_state(string &request, string &response, Agent *agent);
+
 
 
 	/// Create a visualization for the simulation using gnuplot
@@ -125,6 +128,7 @@ public:
 	void init_sim_agents();
 	/// Send a request to all agents in the simulation
 	vector<string> send_req_to_all_agents(string request);
+	
 
 
 

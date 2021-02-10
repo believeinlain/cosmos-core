@@ -33,6 +33,7 @@
 #include "support/timeutils.h"
 #include "agent/agentclass.h"
 
+#include "../sph.h"
 
 #include <chrono>
 #include <iostream>
@@ -43,6 +44,7 @@
 int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 int32_t get_initial_time(string &request, string &response, Agent *cdata);
 int32_t set_run_state(string &request, string &response, Agent *cdata);
+void init_sim_agent();
 void HCL(string&);
 
 // ensure the Agent constructor creates only one instance per process
@@ -55,12 +57,25 @@ string response = "";
 bool run = false;
 double sleeptime = 5.;
 int agent_id;
+/// SPH object
+sph_sim SPH;
+/// Simulation parameters
+param_struct param;
+/// Simulation group configurations
+group_conf_struct group_conf;
+/// Loiter circle locations [x y]
+Eigen::MatrixXd lx;
+/// Loiter circle radii
+Eigen::MatrixXd lR;
+/// Reduced density target locations [x y]
+Eigen::MatrixXd rdx;
+/// Make sure to match group_conf.obs_init
+Eigen::MatrixXd obx;
 
 // Simulation parameters
 
 int main(int argc, char **argv)
 {
-
 	// Run agent from the command line, with an int id
 	if(argc == 2) {
 		std::istringstream ss(argv[1]);
@@ -97,13 +112,15 @@ int main(int argc, char **argv)
 
 	cosmosstruc* c = agent->cinfo;
 
+	//init_sim_agent();
+
 	// agent loop
 	while (agent->running()) {
 
 		cout<<node_agent_name<<" running..."<<endl;
 
 		// Run if running state is true, set to true by init_sim_agents() in the simulation
-		if(run) {
+		/*if(run) {
 			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
 			if(response.size())	{
 				// Request state vectors
@@ -113,7 +130,16 @@ int main(int argc, char **argv)
 				// Use pseudo-HCL to time-align state
 				HCL(response);
 
+				// Update sph state vector to current positions
+				SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
+
 				// Calculate next waypoint via SPH
+				SPH.sph_sim_step(rdx,lx,lR);
+
+				// Send world controller updated agent state
+				//agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
+
+
 				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
 				// ask for their location
 				response.clear();
@@ -122,7 +148,7 @@ int main(int argc, char **argv)
 				run = false;
 				sleeptime = 5.;
 			}
-		}
+		}*/
 		
 		// Sleep for 5 sec
 		COSMOS_SLEEP(sleeptime);
@@ -160,6 +186,28 @@ int32_t set_run_state(string &request, string &response, Agent *) {
 	return 0;
 }
 
+void init_sim_agent() {
+	param = SPH.get_param();
+	group_conf = SPH.get_group_conf();
+	group_conf.num_veh(0) = 9;
+	// Loiter circle position
+	lx.resize(1,2);
+	lx << 28,0;
+	lR.resize(1,1);
+	lR << 5;
+	// Attractors
+	rdx.resize(1,2);
+	rdx << 28,0;
+	// Obstacle positions
+	// Make sure to match group_conf.obs_init
+	obx.resize(5,2);
+	obx << 	 7, 0,
+			12, 4,
+			16, 2,
+			 9,-2,
+			22,-6;
+}
+
 void HCL(string &state) {
 	// parse json state
 	string error;
@@ -175,5 +223,6 @@ void HCL(string &state) {
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].z_position", parsed["state"][i]["z_position"].number_value() + parsed["state"][i]["z_velocity"].number_value() * dt);
 			}
 		}
+		cout << agent->cinfo->get_json<statestruct>("state") << endl;
 	}
 }

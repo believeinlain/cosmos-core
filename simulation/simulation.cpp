@@ -70,6 +70,7 @@ void simulation::start_simulation() {
 
 	// Add basic request function
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
+	//agent->add_request("send_world_new_state", send_world_new_state, "\n\t\tagents will send world controller their sph-updated state");
 
 	// Attempt contact with all other agents of the simulation. Exit if not all agents are running.
 	if(!all_sim_agents_running()) {
@@ -218,24 +219,24 @@ void simulation::init_sim_agents() {
 		if(response.size())	{
 			// Set initial time
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
-			/*json11::Json json = json11::Json::object {
-					{ "x_position", x[i-1] },
-					{ "y_position", y[i-1] },
-					{ "z_position", 0 },
-					{ "x_velocity", 0 },
-					{ "y_velocity", 0 },
-					{ "z_velocity", 0 }
-				};*/
-			stringstream ss;
+			vector<statestruct> state;
+			state.resize(num_agents);
+			state[i-1].x_pos = x[i-1];
+			state[i-1].y_pos = y[i-1];
+			state[i-1].timestamp = t;
+			state[i-1].agent_id = i;
+			json11::Json jstate = json11::Json::object { {"state", state} };
+			/*stringstream ss;
 			ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << x[i-1] << ","
 				<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << y[i-1] << ","
 				<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
 				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"timestamp\":" << setprecision(numeric_limits<double>::digits10) << t << "}";
+				<< 	 "\"timestamp\":" << setprecision(numeric_limits<double>::digits10) << t << ","
+				<< 	 "\"agent_id\":" << i << "}";*/
 			// Set state vector
-			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + ss.str(), response, 2.);
+			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + jstate.dump(), response, 2.);
 			// Set run state to true
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
 			// Set world simulator state
@@ -271,13 +272,11 @@ vector<string> simulation::send_req_to_all_agents(string req) {
 	return all_responses;
 }
 
+/// Agents will send world controller their sph-updated states
+int32_t simulation::send_world_new_state(string &request, string &response, Agent *agent) {
 
-/// Get all state vectors
-int32_t get_state_vectors(string &request, string &response, Agent *agent) {
-	
 	return 0;
 }
-
 
 
 

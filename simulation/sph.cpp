@@ -322,6 +322,25 @@ void sph_sim::sph_sim_step(const Eigen::MatrixXd& rdx,const Eigen::MatrixXd& lx,
 	constrain_vel();
 }
 
+
+// Updates the state matrix based on new information
+void sph_sim::sph_update_state(const string& state, const int& agent_id) {
+	string error;
+	json11::Json parsed = json11::Json::parse(state,error);
+	if(error.empty()) {
+		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
+			if(int(i+1) != agent_id) {
+				states(i,0) = parsed["state"][i]["x_position"].number_value();
+				states(i,1) = parsed["state"][i]["y_position"].number_value();
+				states(i,2) = parsed["state"][i]["z_position"].number_value();
+				states(i,3) = parsed["state"][i]["x_velocity"].number_value();
+				states(i,4) = parsed["state"][i]["y_velocity"].number_value();
+				states(i,5) = parsed["state"][i]["z_velocity"].number_value();
+			}
+		}
+	}
+}
+
 /// Initialize values for demo simulation
 /**
 @return n/a
@@ -346,7 +365,7 @@ void sph_sim::init() {
 	// (Dimensional parameters)
 	
 	// Number of vehicles in each group
-	group_conf.num_veh.resize(1); group_conf.num_veh << 15;
+	group_conf.num_veh.resize(1); group_conf.num_veh << 9;//was15;
 	// Initial positions/velocities for the vehicle groups
 	group_conf.veh_init.x.resize(1); group_conf.veh_init.x << 0;
 	group_conf.veh_init.y.resize(1); group_conf.veh_init.y << 0;
@@ -1272,3 +1291,4 @@ group_conf_struct sph_sim::get_group_conf() {
 // Check that arithmetic stuff uses doubles and not ints (e.g., 2.0 not 2)
 // Consider that I'm comparing using doubles (e.g., x == 1.0), which may cause issues?
 // Can maybe add an overload for the find function so I don't have to cast<double>()
+// I'm hard setting numveh to 9 for the simulation so that the states matrix is initialized correctly. Fix later.

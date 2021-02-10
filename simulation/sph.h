@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "Eigen/Dense"
-#include "Eigen/Sparse"
 #include "sph_structs.h"
+#include "support/json11.hpp"
 
 
 using namespace std;
@@ -129,6 +129,9 @@ public:
 
 	// Take a single time-step forward in the simulation
 	void sph_sim_step(const Eigen::MatrixXd& rdx,const Eigen::MatrixXd& lx,const Eigen::MatrixXd& lR);
+
+	// Updates the state matrix based on new information
+	void sph_update_state(const string& state, const int& agent_id);
 
 	// GETTERS
 	// Return the current time in the SPH simulation
