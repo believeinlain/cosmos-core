@@ -166,9 +166,14 @@ void HCL(string &state) {
 	json11::Json parsed = json11::Json::parse(state,error);
 	if(error.empty()) {
 		// multiply velocity uvw by time difference between the current time and timestamp, then add to position xyz
-
 		double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
-		cout << parsed.dump() << endl;
-		//for(size_t i = 0; i < parsed.)
+		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
+			if(int(i+1) != agent_id) {
+				double dt = parsed["state"][i]["timestamp"].number_value() - t;
+				agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", parsed["state"][i]["x_position"].number_value() + parsed["state"][i]["x_velocity"].number_value() * dt);
+				agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", parsed["state"][i]["y_position"].number_value() + parsed["state"][i]["y_velocity"].number_value() * dt);
+				agent->cinfo->set_value<double>("state["+to_string(i)+"].z_position", parsed["state"][i]["z_position"].number_value() + parsed["state"][i]["z_velocity"].number_value() * dt);
+			}
+		}
 	}
 }
