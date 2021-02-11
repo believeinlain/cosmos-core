@@ -85,18 +85,35 @@ void simulation::start_simulation() {
 
 		cout<<node_agent_name<<" running..."<<endl;
 
-		agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), request, response, 2.);
-		if(response.size())	{
-			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
-			// ask for their location
-			response.clear();
-			//agent->send_request(agent->find_agent("sat_001", "agent_001", 2.), "get_position " + time, response, 2.);
-			cout<<"\n"<<response<<endl;
-		} else {
-			cout<<left<<setw(40)<<"\t[sat_001:agent_001]"<<"\033[1;31mNOT FOUND\033[0m"<<endl;
+		// Get most recent positions
+		vector<string> state_vectors = send_req_to_all_agents("get_state_vector");
+		for(size_t i = 0; i < state_vectors.size(); ++i) {
+			// state json object
+			string error;
+			json11::Json parsed = json11::Json::parse(state_vectors[i],error);
+			if(error.empty()) {
+				string key = "state[" + to_string(i) + "]";
+				if(!parsed[key]["x_position"].is_null()) { x(i,thead) = parsed[key]["x_position"].number_value(); }
+				if(!parsed[key]["y_position"].is_null()) { y(i,thead) = parsed[key]["y_position"].number_value(); }
+				if(!parsed[key]["x_velocity"].is_null()) { u(i,thead) = parsed[key]["x_velocity"].number_value(); }
+				if(!parsed[key]["y_velocity"].is_null()) { v(i,thead) = parsed[key]["y_velocity"].number_value(); }
+			} else {
+				std::cerr << "State vector json object from agent " << to_string(i) << " was empty."  << endl;
+			}
+			trackt[thead] = 5;
 		}
+
+		if(x.array().isNaN().any()) {
+			cout << "Something went wrong, NaN detected in x-positions.";
+			throw "Something went wrong, NaN detected in x-positions";
+		}
+
+		// Plot
+		plot_veh(x, y, trackt, lx, obx);
+		
+		thead = (thead+1) % trackMax;
 		// Sleep for 5 sec
-		COSMOS_SLEEP(5.);
+		COSMOS_SLEEP(0.05);
 	}
 
 	/*
@@ -204,7 +221,7 @@ bool simulation::all_sim_agents_running() {
 /**
 @return n/a
 */
-void simulation::init_sim_agents() {
+void simulation::init_sim_agents(bool test) {
 	response.clear();
 	// Initialize initial times and states
 	std::vector<double> x = {-5,0,5, -5,0,5, -5,0,5};
@@ -234,8 +251,9 @@ void simulation::init_sim_agents() {
 			json11::Json jstate = json11::Json::object { {"state", state}, {"agent_id", i} };
 			// Set state vector
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + jstate.dump(), response, 2.);
-			// Set run state to true
-			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
+			// Set run state to true if not testing
+			if(!test)
+				agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
@@ -272,8 +290,6 @@ int32_t send_world_new_state(string &request, string &response, Agent *agent) {
 
 	// Set agent's new state
 	agent->cinfo->set_json(request);
-	//string name(p.object_items().begin()->first);
-	//agent->cinfo->get_pointer<statestruct>(name)->from_json(json);
 	
 	return 0;
 }

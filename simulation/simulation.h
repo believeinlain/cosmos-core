@@ -126,7 +126,7 @@ public:
 	/// Check that all agents in the simulation are running
 	bool all_sim_agents_running();
 	/// Initialize sim agents
-	void init_sim_agents();
+	void init_sim_agents(bool test=false);
 	/// Send a request to all agents in the simulation
 	vector<string> send_req_to_all_agents(string request);
 	

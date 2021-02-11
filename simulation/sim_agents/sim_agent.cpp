@@ -34,6 +34,7 @@
 #include "agent/agentclass.h"
 
 #include "../sph.h"
+#include "../Eigen/Dense"
 
 #include <chrono>
 #include <iostream>
@@ -44,8 +45,9 @@
 int32_t are_you_out_there(string &request, string &response, Agent *cdata);
 int32_t get_initial_time(string &request, string &response, Agent *cdata);
 int32_t set_run_state(string &request, string &response, Agent *cdata);
-void init_sim_agent();
-void HCL(string&);
+void init_sim_agent(sph_sim&);
+void HCL(sph_sim&, string&);
+void MAC(sph_sim&);
 
 // ensure the Agent constructor creates only one instance per process
 static Agent *agent;
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
 
 	cosmosstruc* c = agent->cinfo;
 
-	init_sim_agent();
+	init_sim_agent(SPH);
 
 	// agent loop
 	while (agent->running()) {
@@ -129,13 +131,13 @@ int main(int argc, char **argv)
 				agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
 
 				// Use pseudo-HCL to time-align state
-				HCL(response);
+				HCL(SPH, response);
 
-				// Update sph state vector to current positions
+				// Update sph state vector to current positions// 
 				SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
 
-				// Calculate next waypoint via SPH
-				SPH.sph_sim_step(rdx,lx,lR);
+				// Perform MAC/SPH
+				MAC(SPH);
 				
 				// Send world controller updated agent state
 				agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id)+"]"), response, 2.);
@@ -183,14 +185,13 @@ int32_t set_run_state(string &request, string &response, Agent *) {
 	istringstream ss(request);
 	ss>>std::boolalpha>>run;
 	// how often to run the sph update, for our purposes doesn't necessarily have to be equal to dt
-	sleeptime = 0.5;
+	sleeptime = 0.05;
 	return 0;
 }
 
-void init_sim_agent() {
-	//param = SPH.get_param();
-	//group_conf = SPH.get_group_conf();
-	//group_conf.num_veh(0) = 9;
+void init_sim_agent(sph_sim& SPH) {
+	param = SPH.get_param();
+	group_conf = SPH.get_group_conf();
 	// Loiter circle position
 	lx.resize(1,2);
 	lx << 28,0;
@@ -209,23 +210,41 @@ void init_sim_agent() {
 			22,-6;
 }
 
-void HCL(string &state) {
+/// Perform pseudo HCL to time align stuff, replace with actual HCL
+void HCL(sph_sim& SPH, string &state) {
 	// parse json state
 	string error;
 	json11::Json parsed = json11::Json::parse(state,error);
 	if(error.empty()) {
 		// multiply velocity uvw by time difference between the current time and timestamp, then add to position xyz
-		double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
+		//double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
 			if(int(i) != agent_id) {
-				double dt = parsed["state"][i]["timestamp"].number_value() - t;
+				//double dt = parsed["state"][i]["timestamp"].number_value() - t;
+				double dt = SPH.get_dt();
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", parsed["state"][i]["x_position"].number_value() + parsed["state"][i]["x_velocity"].number_value() * dt);
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", parsed["state"][i]["y_position"].number_value() + parsed["state"][i]["y_velocity"].number_value() * dt);
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].z_position", parsed["state"][i]["z_position"].number_value() + parsed["state"][i]["z_velocity"].number_value() * dt);
 			}
 		}
-		//cout << agent->cinfo->get_json<statestruct>("state") << endl;
 	}
+}
+
+// Perform MAC/SPH to get new waypoints. Replace with actual MAC
+void MAC(sph_sim& SPH) {
+	
+	// Calculate next waypoint via SPH
+	SPH.sph_sim_step(rdx,lx,lR);
+	
+	// Update agent state
+	Eigen::MatrixXd state = SPH.get_states();
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].x_position", state(agent_id,0));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].y_position", state(agent_id,1));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].z_position", state(agent_id,2));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].x_velocity", state(agent_id,3));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].y_velocity", state(agent_id,4));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].z_velocity", state(agent_id,5));
+	agent->cinfo->set_value<double>("state["+to_string(agent_id)+"].timestamp", std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count() );
 }
 
 
