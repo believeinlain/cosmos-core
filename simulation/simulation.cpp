@@ -217,6 +217,12 @@ void simulation::init_sim_agents() {
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
 		if(response.size())	{
+			// Set world simulator state
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", x[i]);
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", y[i]);
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].timestamp", t);
+			agent->cinfo->set_value<int>("state["+to_string(i)+"].agent_id", i);
+
 			// Set initial time
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
 			vector<statestruct> state;
@@ -226,24 +232,10 @@ void simulation::init_sim_agents() {
 			state[i].timestamp = t;
 			state[i].agent_id = i;
 			json11::Json jstate = json11::Json::object { {"state", state}, {"agent_id", i} };
-			/*stringstream ss;
-			ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << x[i-1] << ","
-				<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << y[i-1] << ","
-				<< 	 "\"z_position\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"x_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"y_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"z_velocity\":" << setprecision(numeric_limits<double>::digits10) << 0 << ","
-				<< 	 "\"timestamp\":" << setprecision(numeric_limits<double>::digits10) << t << ","
-				<< 	 "\"agent_id\":" << i << "}";*/
 			// Set state vector
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + jstate.dump(), response, 2.);
 			// Set run state to true
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
-			// Set world simulator state
-			agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", x[i]);
-			agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", y[i]);
-			agent->cinfo->set_value<double>("state["+to_string(i)+"].timestamp", t);
-			agent->cinfo->set_value<int>("state["+to_string(i)+"].agent_id", i);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {

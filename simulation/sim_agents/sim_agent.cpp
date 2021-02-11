@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 
 				// Calculate next waypoint via SPH
 				SPH.sph_sim_step(rdx,lx,lR);
-				cout << agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]") << endl;
+				
 				// Send world controller updated agent state
 				agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
 
@@ -233,3 +233,4 @@ void HCL(string &state) {
 // Notes to self:
 // Important to declare SPH object after new Agent is called, otherwise segfaults. Probably has to do with
 // how agents need to have their own process id or something. Needs to be the first object created in the executable, or something.
+// Currently hard-resizing cinfo-state.resize(9) in jsonlib.cpp. Should be a more programmatic way of doing things
