@@ -10,6 +10,10 @@
 
 #include "agent/agentclass.h"
 
+
+/// Agents will send world controller their sph-updated states
+int32_t send_world_new_state(string &request, string &response, Agent *agent);
+
 class simulation {
 private:
 	/// Pointer to simulation control agent
@@ -63,9 +67,6 @@ private:
 
 	/// Initialize the simulation parameters
 	void init_simulation(int tf=100);
-
-	/// Agents will send world controller their sph-updated states
-	int32_t send_world_new_state(string &request, string &response, Agent *agent);
 
 
 

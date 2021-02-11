@@ -132,13 +132,13 @@ int main(int argc, char **argv)
 				HCL(response);
 
 				// Update sph state vector to current positions
-				//SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
+				SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
 
 				// Calculate next waypoint via SPH
-				//SPH.sph_sim_step(rdx,lx,lR);
-
+				SPH.sph_sim_step(rdx,lx,lR);
+				cout << agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]") << endl;
 				// Send world controller updated agent state
-				//agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
+				agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
 
 
 				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";
@@ -217,14 +217,14 @@ void HCL(string &state) {
 		// multiply velocity uvw by time difference between the current time and timestamp, then add to position xyz
 		double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
-			if(int(i+1) != agent_id) {
+			if(int(i) != agent_id) {
 				double dt = parsed["state"][i]["timestamp"].number_value() - t;
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", parsed["state"][i]["x_position"].number_value() + parsed["state"][i]["x_velocity"].number_value() * dt);
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", parsed["state"][i]["y_position"].number_value() + parsed["state"][i]["y_velocity"].number_value() * dt);
 				agent->cinfo->set_value<double>("state["+to_string(i)+"].z_position", parsed["state"][i]["z_position"].number_value() + parsed["state"][i]["z_velocity"].number_value() * dt);
 			}
 		}
-		cout << agent->cinfo->get_json<statestruct>("state") << endl;
+		//cout << agent->cinfo->get_json<statestruct>("state") << endl;
 	}
 }
 

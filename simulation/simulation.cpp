@@ -70,7 +70,7 @@ void simulation::start_simulation() {
 
 	// Add basic request function
 	agent->add_request("are_you_out_there", are_you_out_there, "\n\t\trequest to determine if specific agent exists");
-	//agent->add_request("send_world_new_state", send_world_new_state, "\n\t\tagents will send world controller their sph-updated state");
+	agent->add_request("send_world_new_state", send_world_new_state, "\n\t\tagents will send world controller their sph-updated state");
 
 	// Attempt contact with all other agents of the simulation. Exit if not all agents are running.
 	if(!all_sim_agents_running()) {
@@ -183,7 +183,7 @@ bool simulation::all_sim_agents_running() {
 	cout << "Attempting to find all the agents..." << endl;
 	bool out = true;
 	response.clear();
-	for(int i = 1; i <= num_agents; ++i) {
+	for(int i = 0; i < num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
@@ -212,7 +212,7 @@ void simulation::init_sim_agents() {
 	t0 = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	agent->cinfo->get_pointer<vector<statestruct>>("state")->resize(num_agents);
-	for(int i = 1; i <= num_agents; ++i) {
+	for(int i = 0; i < num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
@@ -221,11 +221,11 @@ void simulation::init_sim_agents() {
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
 			vector<statestruct> state;
 			state.resize(num_agents);
-			state[i-1].x_pos = x[i-1];
-			state[i-1].y_pos = y[i-1];
-			state[i-1].timestamp = t;
-			state[i-1].agent_id = i;
-			json11::Json jstate = json11::Json::object { {"state", state} };
+			state[i].x_pos = x[i];
+			state[i].y_pos = y[i];
+			state[i].timestamp = t;
+			state[i].agent_id = i;
+			json11::Json jstate = json11::Json::object { {"state", state}, {"agent_id", i} };
 			/*stringstream ss;
 			ss 	<<  "{\"x_position\":" << setprecision(numeric_limits<double>::digits10) << x[i-1] << ","
 				<< 	 "\"y_position\":" << setprecision(numeric_limits<double>::digits10) << y[i-1] << ","
@@ -240,9 +240,10 @@ void simulation::init_sim_agents() {
 			// Set run state to true
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
 			// Set world simulator state
-			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].x_position", x[i-1]);
-			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].y_position", y[i-1]);
-			agent->cinfo->set_value<double>("state["+to_string(i-1)+"].timestamp", t);
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].x_position", x[i]);
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].y_position", y[i]);
+			agent->cinfo->set_value<double>("state["+to_string(i)+"].timestamp", t);
+			agent->cinfo->set_value<int>("state["+to_string(i)+"].agent_id", i);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
@@ -256,7 +257,7 @@ void simulation::init_sim_agents() {
 /// Send a request to every agent in the simulation, returns a vector of responses
 vector<string> simulation::send_req_to_all_agents(string req) {
 	vector<string> all_responses;
-	for(int i = 1; i <= num_agents; ++i) {
+	for(int i = 0; i < num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string response = "";
@@ -273,8 +274,15 @@ vector<string> simulation::send_req_to_all_agents(string req) {
 }
 
 /// Agents will send world controller their sph-updated states
-int32_t simulation::send_world_new_state(string &request, string &response, Agent *agent) {
+int32_t send_world_new_state(string &request, string &response, Agent *agent) {
+	// remove function call and space
+	request.erase(0,21);
 
+	string error;
+	json11::Json parsed = json11::Json::parse(request,error);
+	if(error.empty()) {
+		//int agent_id = parsed
+	}
 	return 0;
 }
 

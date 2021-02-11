@@ -329,7 +329,7 @@ void sph_sim::sph_update_state(const string& state, const int& agent_id) {
 	json11::Json parsed = json11::Json::parse(state,error);
 	if(error.empty()) {
 		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
-			if(int(i+1) != agent_id) {
+			if(int(i) != agent_id) {
 				states(i,0) = parsed["state"][i]["x_position"].number_value();
 				states(i,1) = parsed["state"][i]["y_position"].number_value();
 				states(i,2) = parsed["state"][i]["z_position"].number_value();
