@@ -57,8 +57,6 @@ string response = "";
 bool run = false;
 double sleeptime = 5.;
 int agent_id;
-/// SPH object
-//sph_sim SPH;
 /// Simulation parameters
 param_struct param;
 /// Simulation group configurations

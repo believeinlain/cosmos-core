@@ -324,8 +324,8 @@ void sph_sim::sph_sim_step(const Eigen::MatrixXd& rdx,const Eigen::MatrixXd& lx,
 
 
 // Updates the state matrix based on new information
-//void sph_sim::sph_update_state(const string& state, const int& agent_id) {
-	/*string error;
+void sph_sim::sph_update_state(const string& state, const int& agent_id) {
+	string error;
 	json11::Json parsed = json11::Json::parse(state,error);
 	if(error.empty()) {
 		for(size_t i = 0; i < parsed["state"].array_items().size(); ++i) {
@@ -338,8 +338,8 @@ void sph_sim::sph_sim_step(const Eigen::MatrixXd& rdx,const Eigen::MatrixXd& lx,
 				states(i,5) = parsed["state"][i]["z_velocity"].number_value();
 			}
 		}
-	}*/
-//}
+	}
+}
 
 /// Initialize values for demo simulation
 /**
@@ -365,7 +365,7 @@ void sph_sim::init() {
 	// (Dimensional parameters)
 	
 	// Number of vehicles in each group
-	group_conf.num_veh.resize(1); group_conf.num_veh << 15;//was15;
+	group_conf.num_veh.resize(1); group_conf.num_veh << 9;//was15;
 	// Initial positions/velocities for the vehicle groups
 	group_conf.veh_init.x.resize(1); group_conf.veh_init.x << 0;
 	group_conf.veh_init.y.resize(1); group_conf.veh_init.y << 0;
