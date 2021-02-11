@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 				SPH.sph_sim_step(rdx,lx,lR);
 				
 				// Send world controller updated agent state
-				agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id-1)+"]"), response, 2.);
+				agent->send_request(agent->find_agent("world", "controller", 2.), "send_world_new_state " + agent->cinfo->get_json<statestruct>("state["+to_string(agent_id)+"]"), response, 2.);
 
 
 				cout<<left<<setw(40)<<"\t[world:controller]"<<setw(16)<<"\033[1;32mFOUND\033[0m";

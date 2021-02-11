@@ -270,11 +270,11 @@ int32_t send_world_new_state(string &request, string &response, Agent *agent) {
 	// remove function call and space
 	request.erase(0,21);
 
-	string error;
-	json11::Json parsed = json11::Json::parse(request,error);
-	if(error.empty()) {
-		//int agent_id = parsed
-	}
+	// Set agent's new state
+	agent->cinfo->set_json(request);
+	//string name(p.object_items().begin()->first);
+	//agent->cinfo->get_pointer<statestruct>(name)->from_json(json);
+	
 	return 0;
 }
 
