@@ -124,11 +124,13 @@ int main(int argc, char **argv)
 
 		// Run if running state is true, set to true by init_sim_agents() in the simulation
 		if(run) {
-			agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
+			//agent->send_request(agent->find_agent("world", "controller", 2.), request, response, 2.);
+			response.clear();
+			agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
 			if(response.size())	{
 				// Request state vectors
-				response.clear();
-				agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
+				//response.clear();
+				//agent->send_request(agent->find_agent("world", "controller", 2.), "get_state_vectors", response, 2.);
 
 				// Use pseudo-HCL to time-align state
 				HCL(SPH, response);
