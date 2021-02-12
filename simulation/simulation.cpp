@@ -233,6 +233,9 @@ void simulation::init_sim_agents(bool test) {
 	t0 = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	agent->cinfo->get_pointer<vector<statestruct>>("state")->resize(num_agents);
+	// fill a state vectors with positional info first
+	vector<statestruct> state;
+	state.resize(num_agents);
 	for(int i = 0; i < num_agents; ++i) {
 		state[i].x_pos = x[i];
 		state[i].y_pos = y[i];
@@ -250,10 +253,8 @@ void simulation::init_sim_agents(bool test) {
 
 			// Set initial time
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
-			vector<statestruct> state;
-			state.resize(num_agents);
-			//state[i].x_pos = x[i];
-			//state[i].y_pos = y[i];
+			
+			// set state properties unique to the agent
 			state[i].timestamp = t;
 			state[i].agent_id = i;
 			json11::Json jstate = json11::Json::object { {"state", state}, {"agent_id", i} };
