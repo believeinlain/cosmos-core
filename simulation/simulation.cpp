@@ -11,7 +11,7 @@ void simulation::init_simulation(int tf/*=100*/) {
 	param = SPH.get_param();
 	group_conf = SPH.get_group_conf();
 	// n x 100 matrix
-	trackMax = 100;
+	trackMax = 10;
 	thead = 0;
 	x = SPH.get_x() * Eigen::MatrixXd::Ones(1,trackMax);
 	y = SPH.get_y() * Eigen::MatrixXd::Ones(1,trackMax);
@@ -80,6 +80,10 @@ void simulation::start_simulation() {
 	// Initialize simulation agents
 	init_sim_agents();
 
+
+	// Set run state to true
+	send_req_to_all_agents("set_run_state true");
+
 	// Simulation loop
 	while (agent->running()) {
 
@@ -103,7 +107,7 @@ void simulation::start_simulation() {
 			trackt[thead] = 5;
 		}
 
-		if(x.array().isNaN().any()) {
+		if(x.array().isNaN().any() || u.array().isNaN().any()) {
 			cout << "Something went wrong, NaN detected in x-positions.";
 			throw "Something went wrong, NaN detected in x-positions";
 		}
@@ -113,7 +117,7 @@ void simulation::start_simulation() {
 		
 		thead = (thead+1) % trackMax;
 		// Sleep for 5 sec
-		COSMOS_SLEEP(0.05);
+		COSMOS_SLEEP(0.5);
 	}
 
 	/*
@@ -230,6 +234,10 @@ void simulation::init_sim_agents(bool test) {
 	double t = std::chrono::duration<double>( std::chrono::system_clock::now().time_since_epoch()).count();
 	agent->cinfo->get_pointer<vector<statestruct>>("state")->resize(num_agents);
 	for(int i = 0; i < num_agents; ++i) {
+		state[i].x_pos = x[i];
+		state[i].y_pos = y[i];
+	}
+	for(int i = 0; i < num_agents; ++i) {
 		string node_name = "sat_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		string agent_name = "agent_" + std::string(3-to_string(i).length(), '0') + to_string(i);
 		agent->send_request(agent->find_agent(node_name, agent_name, 2.), request, response, 2.);
@@ -244,16 +252,13 @@ void simulation::init_sim_agents(bool test) {
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_initial_time " + to_string(t), response, 2.);
 			vector<statestruct> state;
 			state.resize(num_agents);
-			state[i].x_pos = x[i];
-			state[i].y_pos = y[i];
+			//state[i].x_pos = x[i];
+			//state[i].y_pos = y[i];
 			state[i].timestamp = t;
 			state[i].agent_id = i;
 			json11::Json jstate = json11::Json::object { {"state", state}, {"agent_id", i} };
 			// Set state vector
 			agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_state_vector " + jstate.dump(), response, 2.);
-			// Set run state to true if not testing
-			if(!test)
-				agent->send_request(agent->find_agent(node_name, agent_name, 2.), "set_run_state true", response, 2.);
 			this_thread::sleep_for (chrono::milliseconds(10));
 			t += 0.01;
 		} else {
@@ -331,6 +336,7 @@ void simulation::plot_veh(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y, co
 	gp.sendLine("reset", true);
 	gp.sendLine("set title \"Smoothed Particle Hydrodynamics for Agent Control\\n{/*0.85Time = " +to_string(trackt[thead]) + "}\" font \"Arial,16\"", true);
 	gp.sendLine("set parametric", true);
+	gp.sendLine("unset key", true);
 	plot_points(x,y);
 	plot_lx(lx);
 	plot_trails(x,y);
@@ -349,6 +355,7 @@ void simulation::plot_points(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y)
 		if(i < SPH.get_nveh()) {
 			// Vehicles are empty circles
 			gp.sendLine("set label at " + to_string(x(i,thead)) + "," + to_string(y(i,thead)) + " point pointtype 6 pointsize 1 lt rgb \"royalblue\"", true);
+			//gp.sendLine("set label at " + to_string(x(i,thead)) + "," + to_string(y(i,thead)) + " point pointtype 6 pointsize 1", true);
 		}
 		// Obstacle
 		else if(i < SPH.get_nveh() + SPH.get_nobs()) {
@@ -389,12 +396,12 @@ void simulation::plot_trails(const Eigen::MatrixXd& x, const Eigen::MatrixXd& y)
 		gp.sendLine(gnutrail(y.row(i),"Y"+to_string(i)), true);
 	}
 	gp.sendLine("set trange [1:words(X0)]; set samples words(X0)", true);
-	gp.sendLine("unset key", true);
 	gp.sendLine("set xrange [-10:40]; set yrange [-10:10]; set size ratio -1", true);
 	ostringstream o;
 	o << "plot ";
 	for(int i = 0; i < x.rows(); ++i) {
-		o << "(0+word(X" << to_string(i) << ",int(t))),(0+word(Y" << to_string(i) << ",int(t))) lt rgb \"royalblue\"";
+		//o << "(0+word(X" << to_string(i) << ",int(t))),(0+word(Y" << to_string(i) << ",int(t))) lt rgb \"royalblue\"";
+		o << "(0+word(X" << to_string(i) << ",int(t))),(0+word(Y" << to_string(i) << ",int(t)))";
 		if(i+1 < x.rows()) {
 			o << ", ";
 		}

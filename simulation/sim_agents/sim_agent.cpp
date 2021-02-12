@@ -134,6 +134,7 @@ int main(int argc, char **argv)
 				HCL(SPH, response);
 
 				// Update sph state vector to current positions// 
+				SPH.sph_update_properties(param, group_conf);
 				SPH.sph_update_state(agent->cinfo->get_json<vector<statestruct>>("state"), agent_id);
 
 				// Perform MAC/SPH
@@ -185,12 +186,13 @@ int32_t set_run_state(string &request, string &response, Agent *) {
 	istringstream ss(request);
 	ss>>std::boolalpha>>run;
 	// how often to run the sph update, for our purposes doesn't necessarily have to be equal to dt
-	sleeptime = 0.05;
+	sleeptime = 0.5;
 	return 0;
 }
 
 void init_sim_agent(sph_sim& SPH) {
 	param = SPH.get_param();
+	param.dt = 0.05;
 	group_conf = SPH.get_group_conf();
 	// Loiter circle position
 	lx.resize(1,2);
