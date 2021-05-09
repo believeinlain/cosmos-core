@@ -521,16 +521,16 @@ struct MatrixXpr {};
 struct ArrayXpr {};
 
 // An evaluator must define its shape. By default, it can be one of the following:
-struct DenseShape             { static std::string debugName() { return "DenseShape"; } };
-struct SolverShape            { static std::string debugName() { return "SolverShape"; } };
-struct HomogeneousShape       { static std::string debugName() { return "HomogeneousShape"; } };
-struct DiagonalShape          { static std::string debugName() { return "DiagonalShape"; } };
-struct BandShape              { static std::string debugName() { return "BandShape"; } };
-struct TriangularShape        { static std::string debugName() { return "TriangularShape"; } };
-struct SelfAdjointShape       { static std::string debugName() { return "SelfAdjointShape"; } };
-struct PermutationShape       { static std::string debugName() { return "PermutationShape"; } };
-struct TranspositionsShape    { static std::string debugName() { return "TranspositionsShape"; } };
-struct SparseShape            { static std::string debugName() { return "SparseShape"; } };
+struct DenseShape             { static string debugName() { return "DenseShape"; } };
+struct SolverShape            { static string debugName() { return "SolverShape"; } };
+struct HomogeneousShape       { static string debugName() { return "HomogeneousShape"; } };
+struct DiagonalShape          { static string debugName() { return "DiagonalShape"; } };
+struct BandShape              { static string debugName() { return "BandShape"; } };
+struct TriangularShape        { static string debugName() { return "TriangularShape"; } };
+struct SelfAdjointShape       { static string debugName() { return "SelfAdjointShape"; } };
+struct PermutationShape       { static string debugName() { return "PermutationShape"; } };
+struct TranspositionsShape    { static string debugName() { return "TranspositionsShape"; } };
+struct SparseShape            { static string debugName() { return "SparseShape"; } };
 
 namespace internal {
 

@@ -84,7 +84,7 @@ public:
    *
    */
   ArpackGeneralizedSelfAdjointEigenSolver(const MatrixType& A, const MatrixType& B,
-                                          Index nbrEigenvalues, std::string eigs_sigma="LM",
+                                          Index nbrEigenvalues, string eigs_sigma="LM",
                                int options=ComputeEigenvectors, RealScalar tol=0.0)
     : m_eivec(),
       m_eivalues(),
@@ -119,7 +119,7 @@ public:
    */
 
   ArpackGeneralizedSelfAdjointEigenSolver(const MatrixType& A,
-                                          Index nbrEigenvalues, std::string eigs_sigma="LM",
+                                          Index nbrEigenvalues, string eigs_sigma="LM",
                                int options=ComputeEigenvectors, RealScalar tol=0.0)
     : m_eivec(),
       m_eivalues(),
@@ -156,7 +156,7 @@ public:
    *
    */
   ArpackGeneralizedSelfAdjointEigenSolver& compute(const MatrixType& A, const MatrixType& B,
-                                                   Index nbrEigenvalues, std::string eigs_sigma="LM",
+                                                   Index nbrEigenvalues, string eigs_sigma="LM",
                                         int options=ComputeEigenvectors, RealScalar tol=0.0);
   
   /** \brief Computes eigenvalues / eigenvectors of given matrix using the external ARPACK library.
@@ -182,7 +182,7 @@ public:
    *
    */
   ArpackGeneralizedSelfAdjointEigenSolver& compute(const MatrixType& A,
-                                                   Index nbrEigenvalues, std::string eigs_sigma="LM",
+                                                   Index nbrEigenvalues, string eigs_sigma="LM",
                                         int options=ComputeEigenvectors, RealScalar tol=0.0);
 
 
@@ -318,7 +318,7 @@ template<typename MatrixType, typename MatrixSolver, bool BisSPD>
 ArpackGeneralizedSelfAdjointEigenSolver<MatrixType, MatrixSolver, BisSPD>&
     ArpackGeneralizedSelfAdjointEigenSolver<MatrixType, MatrixSolver, BisSPD>
 ::compute(const MatrixType& A, Index nbrEigenvalues,
-          std::string eigs_sigma, int options, RealScalar tol)
+          string eigs_sigma, int options, RealScalar tol)
 {
     MatrixType B(0,0);
     compute(A, B, nbrEigenvalues, eigs_sigma, options, tol);
@@ -331,7 +331,7 @@ template<typename MatrixType, typename MatrixSolver, bool BisSPD>
 ArpackGeneralizedSelfAdjointEigenSolver<MatrixType, MatrixSolver, BisSPD>&
     ArpackGeneralizedSelfAdjointEigenSolver<MatrixType, MatrixSolver, BisSPD>
 ::compute(const MatrixType& A, const MatrixType& B, Index nbrEigenvalues,
-          std::string eigs_sigma, int options, RealScalar tol)
+          string eigs_sigma, int options, RealScalar tol)
 {
   eigen_assert(A.cols() == A.rows());
   eigen_assert(B.cols() == B.rows());

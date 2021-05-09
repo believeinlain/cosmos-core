@@ -31,7 +31,7 @@ struct accel_struct {
 };
 
 // Initial positions and velocities for the vehicle groupps
-struct pos_vel_struct {
+struct Convert::pos_vel_struct {
 	// initial positions
 	VectorXd x, y, z;
 
@@ -46,7 +46,7 @@ struct veh_limits_struct {
 };
 
 // Positions
-struct pos_struct {
+struct Convert::pos_struct {
 	VectorXd x, y, z;
 };
 
@@ -89,7 +89,7 @@ struct group_conf_struct {
 	VectorXi num_veh;
 
 	// Struct of vectors of initial positions and velocities for the vehicle groups
-	pos_vel_struct veh_init;
+	Convert::pos_vel_struct veh_init;
 
 	// Vector of smoothing widths for each group
 	VectorXd veh_h;
@@ -104,7 +104,7 @@ struct group_conf_struct {
 	VectorXd obs_h;
 
 	// Vector of positions of the obstacles
-	pos_struct obs_init;
+	Convert::pos_struct obs_init;
 
 	// Total number of reduced density particles
 	unsigned int num_rd;
@@ -115,7 +115,7 @@ struct group_conf_struct {
 	VectorXd rd_group;
 
 	// Vector of initial positions and velocities for the reduced particles
-	pos_vel_struct rd_init;
+	Convert::pos_vel_struct rd_init;
 
 	// Smoothing width for each reduced particle group
 	VectorXd rd_h;

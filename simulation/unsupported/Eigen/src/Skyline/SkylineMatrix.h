@@ -682,7 +682,7 @@ public:
         }
     }
 
-    friend std::ostream & operator <<(std::ostream & s, const SkylineMatrix & m) {
+    friend ::std::ostream & operator <<(::std::ostream & s, const SkylineMatrix & m) {
 
         EIGEN_DBG_SKYLINE(
         std::cout << "upper elements : " << std::endl;

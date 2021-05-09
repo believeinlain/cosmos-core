@@ -59,17 +59,17 @@ typedef v4u32 Packet4ui;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME, X) const Packet4i p4i_##NAME = { X, X, X, X }
 #define _EIGEN_DECLARE_CONST_Packet4ui(NAME, X) const Packet4ui p4ui_##NAME = { X, X, X, X }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet4f& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet4f& value) {
   os << "[ " << value[0] << ", " << value[1] << ", " << value[2] << ", " << value[3] << " ]";
   return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet4i& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet4i& value) {
   os << "[ " << value[0] << ", " << value[1] << ", " << value[2] << ", " << value[3] << " ]";
   return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet4ui& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet4ui& value) {
   os << "[ " << value[0] << ", " << value[1] << ", " << value[2] << ", " << value[3] << " ]";
   return os;
 }
@@ -675,7 +675,7 @@ EIGEN_STRONG_INLINE int32_t predux_max<Packet4i>(const Packet4i& a) {
   return m[0];
 }
 
-inline std::ostream& operator<<(std::ostream& os, const PacketBlock<Packet4f, 4>& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const PacketBlock<Packet4f, 4>& value) {
   os << "[ " << value.packet[0] << "," << std::endl
      << "  " << value.packet[1] << "," << std::endl
      << "  " << value.packet[2] << "," << std::endl
@@ -699,7 +699,7 @@ EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet4f, 4>& kernel) {
   kernel.packet[3] = (Packet4f)__builtin_msa_ilvod_d((v2i64)tmp4, (v2i64)tmp3);
 }
 
-inline std::ostream& operator<<(std::ostream& os, const PacketBlock<Packet4i, 4>& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const PacketBlock<Packet4i, 4>& value) {
   os << "[ " << value.packet[0] << "," << std::endl
      << "  " << value.packet[1] << "," << std::endl
      << "  " << value.packet[2] << "," << std::endl
@@ -829,17 +829,17 @@ typedef v2u64 Packet2ul;
 #define _EIGEN_DECLARE_CONST_Packet2l(NAME, X) const Packet2l p2l_##NAME = { X, X }
 #define _EIGEN_DECLARE_CONST_Packet2ul(NAME, X) const Packet2ul p2ul_##NAME = { X, X }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet2d& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet2d& value) {
   os << "[ " << value[0] << ", " << value[1] << " ]";
   return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet2l& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet2l& value) {
   os << "[ " << value[0] << ", " << value[1] << " ]";
   return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const Packet2ul& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet2ul& value) {
   os << "[ " << value[0] << ", " << value[1] << " ]";
   return os;
 }
@@ -1149,7 +1149,7 @@ EIGEN_STRONG_INLINE Packet2d prsqrt(const Packet2d& a) {
 #endif
 }
 
-inline std::ostream& operator<<(std::ostream& os, const PacketBlock<Packet2d, 2>& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const PacketBlock<Packet2d, 2>& value) {
   os << "[ " << value.packet[0] << "," << std::endl << "  " << value.packet[1] << " ]";
   return os;
 }

@@ -595,7 +595,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bfloat16 fmax(const bfloat16& a, const bfl
 }
 
 #ifndef EIGEN_NO_IO
-EIGEN_ALWAYS_INLINE std::ostream& operator << (std::ostream& os, const bfloat16& v) {
+EIGEN_ALWAYS_INLINE ::std::ostream& operator << (::std::ostream& os, const bfloat16& v) {
   os << static_cast<float>(v);
   return os;
 }

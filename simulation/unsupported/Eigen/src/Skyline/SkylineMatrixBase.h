@@ -172,7 +172,7 @@ public:
     template<typename Lhs, typename Rhs>
             inline Derived & operator=(const SkylineProduct<Lhs, Rhs, SkylineTimeSkylineProduct>& product);
 
-    friend std::ostream & operator <<(std::ostream & s, const SkylineMatrixBase& m) {
+    friend ::std::ostream & operator <<(::std::ostream & s, const SkylineMatrixBase& m) {
         s << m.derived();
         return s;
     }
