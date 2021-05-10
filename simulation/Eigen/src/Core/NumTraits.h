@@ -283,8 +283,8 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   static inline int digits10() { return NumTraits<Scalar>::digits10(); }
 };
 
-template<> struct NumTraits<std::string>
-  : GenericNumTraits<std::string>
+template<> struct NumTraits<string>
+  : GenericNumTraits<string>
 {
   enum {
     RequireInitialization = 1,
@@ -297,12 +297,12 @@ template<> struct NumTraits<std::string>
   static inline int digits10() { return 0; }
 
 private:
-  static inline std::string epsilon();
-  static inline std::string dummy_precision();
-  static inline std::string lowest();
-  static inline std::string highest();
-  static inline std::string infinity();
-  static inline std::string quiet_NaN();
+  static inline string epsilon();
+  static inline string dummy_precision();
+  static inline string lowest();
+  static inline string highest();
+  static inline string infinity();
+  static inline string quiet_NaN();
 };
 
 // Empty specialization for void to allow template specialization based on NumTraits<T>::Real with T==void and SFINAE.

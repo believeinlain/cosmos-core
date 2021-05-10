@@ -21,7 +21,7 @@ namespace internal
   template <typename Scalar, typename StorageIndex>
   inline void GetMarketLine (const char* line, StorageIndex& i, StorageIndex& j, Scalar& value)
   {
-    std::stringstream sline(line);
+    stringstream sline(line);
     sline >> i >> j >> value;
   }
 
@@ -40,21 +40,21 @@ namespace internal
   template <typename Scalar, typename StorageIndex>
   inline void GetMarketLine (const char* line, StorageIndex& i, StorageIndex& j, std::complex<Scalar>& value)
   {
-    std::stringstream sline(line);
+    stringstream sline(line);
     Scalar valR, valI;
     sline >> i >> j >> valR >> valI;
     value = std::complex<Scalar>(valR,valI);
   }
 
   template <typename RealScalar>
-  inline void  GetVectorElt (const std::string& line, RealScalar& val)
+  inline void  GetVectorElt (const string& line, RealScalar& val)
   {
     std::istringstream newline(line);
     newline >> val;  
   }
 
   template <typename RealScalar>
-  inline void GetVectorElt (const std::string& line, std::complex<RealScalar>& val)
+  inline void GetVectorElt (const string& line, std::complex<RealScalar>& val)
   {
     RealScalar valR, valI; 
     std::istringstream newline(line);
@@ -63,7 +63,7 @@ namespace internal
   }
   
   template<typename Scalar>
-  inline void putMarketHeader(std::string& header,int sym)
+  inline void putMarketHeader(string& header,int sym)
   {
     header= "%%MatrixMarket matrix coordinate ";
     if(internal::is_same<Scalar, std::complex<float> >::value || internal::is_same<Scalar, std::complex<double> >::value)
@@ -106,7 +106,7 @@ namespace internal
 
 } // end namespace internal
 
-inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscomplex, bool& isvector)
+inline bool getMarketHeader(const string& filename, int& sym, bool& iscomplex, bool& isvector)
 {
   sym = 0; 
   iscomplex = false;
@@ -115,12 +115,12 @@ inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscompl
   if(!in)
     return false;
   
-  std::string line; 
+  string line; 
   // The matrix header is always the first line in the file 
   std::getline(in, line); eigen_assert(in.good());
   
-  std::stringstream fmtline(line); 
-  std::string substr[5];
+  stringstream fmtline(line); 
+  string substr[5];
   fmtline>> substr[0] >> substr[1] >> substr[2] >> substr[3] >> substr[4];
   if(substr[2].compare("array") == 0) isvector = true;
   if(substr[3].compare("complex") == 0) iscomplex = true;
@@ -131,7 +131,7 @@ inline bool getMarketHeader(const std::string& filename, int& sym, bool& iscompl
 }
   
 template<typename SparseMatrixType>
-bool loadMarket(SparseMatrixType& mat, const std::string& filename)
+bool loadMarket(SparseMatrixType& mat, const string& filename)
 {
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef typename SparseMatrixType::StorageIndex StorageIndex;
@@ -161,7 +161,7 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
 
     if(!readsizes)
     {
-      std::stringstream line(buffer);
+      stringstream line(buffer);
       line >> M >> N >> NNZ;
       if(M > 0 && N > 0)
       {
@@ -197,14 +197,14 @@ bool loadMarket(SparseMatrixType& mat, const std::string& filename)
 }
 
 template<typename VectorType>
-bool loadMarketVector(VectorType& vec, const std::string& filename)
+bool loadMarketVector(VectorType& vec, const string& filename)
 {
    typedef typename VectorType::Scalar Scalar;
   std::ifstream in(filename.c_str(), std::ios::in);
   if(!in)
     return false;
   
-  std::string line; 
+  string line; 
   int n(0), col(0); 
   do 
   { // Skip comments
@@ -229,7 +229,7 @@ bool loadMarketVector(VectorType& vec, const std::string& filename)
 }
 
 template<typename SparseMatrixType>
-bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sym = 0)
+bool saveMarket(const SparseMatrixType& mat, const string& filename, int sym = 0)
 {
   typedef typename SparseMatrixType::Scalar Scalar;
   typedef typename SparseMatrixType::RealScalar RealScalar;
@@ -239,7 +239,7 @@ bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sy
   
   out.flags(std::ios_base::scientific);
   out.precision(std::numeric_limits<RealScalar>::digits10 + 2);
-  std::string header; 
+  string header; 
   internal::putMarketHeader<Scalar>(header, sym); 
   out << header << std::endl; 
   out << mat.rows() << " " << mat.cols() << " " << mat.nonZeros() << "\n";
@@ -255,7 +255,7 @@ bool saveMarket(const SparseMatrixType& mat, const std::string& filename, int sy
 }
 
 template<typename VectorType>
-bool saveMarketVector (const VectorType& vec, const std::string& filename)
+bool saveMarketVector (const VectorType& vec, const string& filename)
 {
  typedef typename VectorType::Scalar Scalar;
  typedef typename VectorType::RealScalar RealScalar;

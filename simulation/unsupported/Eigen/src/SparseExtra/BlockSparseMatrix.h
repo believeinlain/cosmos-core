@@ -915,7 +915,7 @@ class BlockSparseMatrix : public SparseMatrixBase<BlockSparseMatrix<_Scalar,_Blo
       */
     class BlockInnerIterator; // Browse block by block
 
-    friend std::ostream & operator << (std::ostream & s, const BlockSparseMatrix& m)
+    friend ::std::ostream & operator << (::std::ostream & s, const BlockSparseMatrix& m)
     {
       for (StorageIndex j = 0; j < m.outerBlocks(); ++j)
       {

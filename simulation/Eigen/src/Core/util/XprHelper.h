@@ -735,7 +735,7 @@ struct scalar_div_cost<unsigned long,Vectorized,typename conditional<sizeof(long
 
 
 #ifdef EIGEN_DEBUG_ASSIGN
-std::string demangle_traversal(int t)
+string demangle_traversal(int t)
 {
   if(t==DefaultTraversal) return "DefaultTraversal";
   if(t==LinearTraversal) return "LinearTraversal";
@@ -744,16 +744,16 @@ std::string demangle_traversal(int t)
   if(t==SliceVectorizedTraversal) return "SliceVectorizedTraversal";
   return "?";
 }
-std::string demangle_unrolling(int t)
+string demangle_unrolling(int t)
 {
   if(t==NoUnrolling) return "NoUnrolling";
   if(t==InnerUnrolling) return "InnerUnrolling";
   if(t==CompleteUnrolling) return "CompleteUnrolling";
   return "?";
 }
-std::string demangle_flags(int f)
+string demangle_flags(int f)
 {
-  std::string res;
+  string res;
   if(f&RowMajorBit)                 res += " | RowMajor";
   if(f&PacketAccessBit)             res += " | Packet";
   if(f&LinearAccessBit)             res += " | Linear";

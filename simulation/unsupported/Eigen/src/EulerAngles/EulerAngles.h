@@ -281,7 +281,7 @@ namespace Eigen
           AngleAxisType(gamma(), GammaAxisVector());
       }
       
-      friend std::ostream& operator<<(std::ostream& s, const EulerAngles<Scalar, System>& eulerAngles)
+      friend ::std::ostream& operator<<(::std::ostream& s, const EulerAngles<Scalar, System>& eulerAngles)
       {
         s << eulerAngles.angles().transpose();
         return s;

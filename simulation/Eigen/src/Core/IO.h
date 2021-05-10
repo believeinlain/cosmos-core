@@ -19,7 +19,7 @@ enum { StreamPrecision = -1,
 
 namespace internal {
 template<typename Derived>
-std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt);
+::std::ostream & print_matrix(::std::ostream & s, const Derived& _m, const IOFormat& fmt);
 }
 
 /** \class IOFormat
@@ -52,9 +52,9 @@ struct IOFormat
 {
   /** Default constructor, see class IOFormat for the meaning of the parameters */
   IOFormat(int _precision = StreamPrecision, int _flags = 0,
-    const std::string& _coeffSeparator = " ",
-    const std::string& _rowSeparator = "\n", const std::string& _rowPrefix="", const std::string& _rowSuffix="",
-    const std::string& _matPrefix="", const std::string& _matSuffix="", const char _fill=' ')
+    const string& _coeffSeparator = " ",
+    const string& _rowSeparator = "\n", const string& _rowPrefix="", const string& _rowSuffix="",
+    const string& _matPrefix="", const string& _matSuffix="", const char _fill=' ')
   : matPrefix(_matPrefix), matSuffix(_matSuffix), rowPrefix(_rowPrefix), rowSuffix(_rowSuffix), rowSeparator(_rowSeparator),
     rowSpacer(""), coeffSeparator(_coeffSeparator), fill(_fill), precision(_precision), flags(_flags)
   {
@@ -69,9 +69,9 @@ struct IOFormat
       i--;
     }
   }
-  std::string matPrefix, matSuffix;
-  std::string rowPrefix, rowSuffix, rowSeparator, rowSpacer;
-  std::string coeffSeparator;
+  string matPrefix, matSuffix;
+  string rowPrefix, rowSuffix, rowSeparator, rowSpacer;
+  string coeffSeparator;
   char fill;
   int precision;
   int flags;
@@ -101,7 +101,7 @@ class WithFormat
       : m_matrix(matrix), m_format(format)
     {}
 
-    friend std::ostream & operator << (std::ostream & s, const WithFormat& wf)
+    friend ::std::ostream & operator << (::std::ostream & s, const WithFormat& wf)
     {
       return internal::print_matrix(s, wf.m_matrix.eval(), wf.m_format);
     }
@@ -128,7 +128,7 @@ struct significant_decimals_impl
 /** \internal
   * print the matrix \a _m to the output stream \a s using the output format \a fmt */
 template<typename Derived>
-std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat& fmt)
+::std::ostream & print_matrix(::std::ostream & s, const Derived& _m, const IOFormat& fmt)
 {
   using internal::is_same;
   using internal::conditional;
@@ -191,7 +191,7 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
     for(Index j = 0; j < m.cols(); ++j)
       for(Index i = 0; i < m.rows(); ++i)
       {
-        std::stringstream sstr;
+        stringstream sstr;
         sstr.copyfmt(s);
         sstr << static_cast<PrintType>(m.coeff(i,j));
         width = std::max<Index>(width, Index(sstr.str().length()));
@@ -246,8 +246,8 @@ std::ostream & print_matrix(std::ostream & s, const Derived& _m, const IOFormat&
   * \sa DenseBase::format()
   */
 template<typename Derived>
-std::ostream & operator <<
-(std::ostream & s,
+::std::ostream & operator <<
+(::std::ostream & s,
  const DenseBase<Derived> & m)
 {
   return internal::print_matrix(s, m.eval(), EIGEN_DEFAULT_IO_FORMAT);

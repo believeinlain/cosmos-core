@@ -17,7 +17,7 @@ namespace internal {
 // Print the tensor as a 2d matrix
 template <typename Tensor, int Rank>
 struct TensorPrinter {
-  static void run (std::ostream& os, const Tensor& tensor) {
+  static void run (::std::ostream& os, const Tensor& tensor) {
     typedef typename internal::remove_const<typename Tensor::Scalar>::type Scalar;
     typedef typename Tensor::Index Index;
     const Index total_size = internal::array_prod(tensor.dimensions());
@@ -34,7 +34,7 @@ struct TensorPrinter {
 // Print the tensor as a vector
 template <typename Tensor>
 struct TensorPrinter<Tensor, 1> {
-  static void run (std::ostream& os, const Tensor& tensor) {
+  static void run (::std::ostream& os, const Tensor& tensor) {
     typedef typename internal::remove_const<typename Tensor::Scalar>::type Scalar;
     typedef typename Tensor::Index Index;
     const Index total_size = internal::array_prod(tensor.dimensions());
@@ -49,14 +49,14 @@ struct TensorPrinter<Tensor, 1> {
 // Print the tensor as a scalar
 template <typename Tensor>
 struct TensorPrinter<Tensor, 0> {
-  static void run (std::ostream& os, const Tensor& tensor) {
+  static void run (::std::ostream& os, const Tensor& tensor) {
     os << tensor.coeff(0);
   }
 };
 }
 
 template <typename T>
-std::ostream& operator << (std::ostream& os, const TensorBase<T, ReadOnlyAccessors>& expr) {
+::std::ostream& operator << (::std::ostream& os, const TensorBase<T, ReadOnlyAccessors>& expr) {
   typedef TensorEvaluator<const TensorForcedEvalOp<const T>, DefaultDevice> Evaluator;
   typedef typename Evaluator::Dimensions Dimensions;
 

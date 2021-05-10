@@ -60,9 +60,9 @@ struct SyclDeviceInfo {
   unsigned long max_compute_units;
   unsigned long max_work_group_size;
   size_t local_mem_size;
-  std::string platform_name;
-  std::string device_name;
-  std::string device_vendor;
+  string platform_name;
+  string device_name;
+  string device_vendor;
 };
 
 }  // end namespace internal
@@ -89,9 +89,9 @@ EIGEN_STRONG_INLINE auto get_sycl_supported_devices()
       auto vendor = device.template get_info<cl::sycl::info::device::vendor>();
       std::transform(vendor.begin(), vendor.end(), vendor.begin(), ::tolower);
       bool unsupported_condition =
-          (device.is_cpu() && platform_name.find("amd") != std::string::npos &&
-           vendor.find("apu") == std::string::npos) ||
-          (platform_name.find("experimental") != std::string::npos) ||
+          (device.is_cpu() && platform_name.find("amd") != string::npos &&
+           vendor.find("apu") == string::npos) ||
+          (platform_name.find("experimental") != string::npos) ||
           device.is_host();
       if (!unsupported_condition) {
         supported_devices.push_back(device);
@@ -677,15 +677,15 @@ class QueueInterface {
     return getPowerOfTwo(m_device_info.max_work_group_size, false);
   }
 
-  EIGEN_STRONG_INLINE std::string getPlatformName() const {
+  EIGEN_STRONG_INLINE string getPlatformName() const {
     return m_device_info.platform_name;
   }
 
-  EIGEN_STRONG_INLINE std::string getDeviceName() const {
+  EIGEN_STRONG_INLINE string getDeviceName() const {
     return m_device_info.device_name;
   }
 
-  EIGEN_STRONG_INLINE std::string getDeviceVendor() const {
+  EIGEN_STRONG_INLINE string getDeviceVendor() const {
     return m_device_info.device_vendor;
   }
 
@@ -1017,13 +1017,13 @@ struct SyclDevice : public SyclDeviceBase {
   EIGEN_STRONG_INLINE long max_buffer_size() const {
     return queue_stream()->max_buffer_size();
   }
-  EIGEN_STRONG_INLINE std::string getPlatformName() const {
+  EIGEN_STRONG_INLINE string getPlatformName() const {
     return queue_stream()->getPlatformName();
   }
-  EIGEN_STRONG_INLINE std::string getDeviceName() const {
+  EIGEN_STRONG_INLINE string getDeviceName() const {
     return queue_stream()->getDeviceName();
   }
-  EIGEN_STRONG_INLINE std::string getDeviceVendor() const {
+  EIGEN_STRONG_INLINE string getDeviceVendor() const {
     return queue_stream()->getDeviceVendor();
   }
   template <typename OutScalar, typename KernelType, typename... T>

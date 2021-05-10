@@ -325,7 +325,7 @@ struct IndexList : internal::IndexTuple<FirstType, OtherTypes...> {
 };
 
 template <typename FirstType, typename... OtherTypes>
-std::ostream& operator<<(std::ostream& os,
+::std::ostream& operator<<(::std::ostream& os,
                          const IndexList<FirstType, OtherTypes...>& dims) {
   os << "[";
   for (size_t i = 0; i < 1 + sizeof...(OtherTypes); ++i) {

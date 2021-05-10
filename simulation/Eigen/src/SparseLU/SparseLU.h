@@ -208,7 +208,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     /**
       * \returns A string describing the type of error
       */
-    std::string lastErrorMessage() const
+    string lastErrorMessage() const
     {
       return m_lastError; 
     }
@@ -374,7 +374,7 @@ class SparseLU : public SparseSolverBase<SparseLU<_MatrixType,_OrderingType> >, 
     mutable ComputationInfo m_info;
     bool m_factorizationIsOk;
     bool m_analysisIsOk;
-    std::string m_lastError;
+    string m_lastError;
     NCMatrix m_mat; // The input (permuted ) matrix 
     SCMatrix m_Lstore; // The lower triangular matrix (supernodal)
     MappedSparseMatrix<Scalar,ColMajor,StorageIndex> m_Ustore; // The upper triangular matrix

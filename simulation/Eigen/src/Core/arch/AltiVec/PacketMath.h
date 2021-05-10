@@ -370,7 +370,7 @@ template<> struct unpacket_traits<Packet8bf>
   typedef Packet8bf          half;
   enum {size=8, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false};
 };
-inline std::ostream & operator <<(std::ostream & s, const Packet16c & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet16c & v)
 {
   union {
     Packet16c   v;
@@ -382,7 +382,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet16c & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet16uc & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet16uc & v)
 {
   union {
     Packet16uc   v;
@@ -394,7 +394,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet16uc & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4f & v)
 {
   union {
     Packet4f   v;
@@ -405,7 +405,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet4i & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4i & v)
 {
   union {
     Packet4i   v;
@@ -416,7 +416,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4i & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4ui & v)
 {
   union {
     Packet4ui   v;
@@ -2250,7 +2250,7 @@ template<> struct packet_traits<double> : default_packet_traits
 
 template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef Packet2d half; };
 
-inline std::ostream & operator <<(std::ostream & s, const Packet2l & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet2l & v)
 {
   union {
     Packet2l   v;
@@ -2261,7 +2261,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2l & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet2d & v)
 {
   union {
     Packet2d   v;

@@ -329,7 +329,7 @@ class SparseVector
     }
     #endif
 
-    friend std::ostream & operator << (std::ostream & s, const SparseVector& m)
+    friend ::std::ostream & operator << (::std::ostream & s, const SparseVector& m)
     {
       for (Index i=0; i<m.nonZeros(); ++i)
         s << "(" << m.m_data.value(i) << "," << m.m_data.index(i) << ") ";

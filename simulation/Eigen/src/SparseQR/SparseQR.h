@@ -198,7 +198,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     /** \returns A string describing the type of error.
       * This method is provided to ease debugging, not to handle errors.
       */
-    std::string lastErrorMessage() const { return m_lastError; }
+    string lastErrorMessage() const { return m_lastError; }
     
     /** \internal */
     template<typename Rhs, typename Dest>
@@ -287,7 +287,7 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
     bool m_analysisIsok;
     bool m_factorizationIsok;
     mutable ComputationInfo m_info;
-    std::string m_lastError;
+    string m_lastError;
     QRMatrixType m_pmat;            // Temporary matrix
     QRMatrixType m_R;               // The triangular factor matrix
     QRMatrixType m_Q;               // The orthogonal reflectors
