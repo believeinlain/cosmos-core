@@ -116,7 +116,7 @@
 
 #if defined(MPREAL_HAVE_MSVC_DEBUGVIEW) && defined(_MSC_VER) && defined(_DEBUG)
     #define MPREAL_MSVC_DEBUGVIEW_CODE     DebugView = toString();
-    #define MPREAL_MSVC_DEBUGVIEW_DATA     std::string DebugView;
+    #define MPREAL_MSVC_DEBUGVIEW_DATA     string DebugView;
 #else
     #define MPREAL_MSVC_DEBUGVIEW_CODE 
     #define MPREAL_MSVC_DEBUGVIEW_DATA 
@@ -176,7 +176,7 @@ public:
     mpreal(const mpfr_t  u, bool shared = false);   
 
     mpreal(const char* s,             mp_prec_t prec = mpreal::get_default_prec(), int base = 10, mp_rnd_t mode = mpreal::get_default_rnd());
-    mpreal(const std::string& s,      mp_prec_t prec = mpreal::get_default_prec(), int base = 10, mp_rnd_t mode = mpreal::get_default_rnd());
+    mpreal(const string& s,      mp_prec_t prec = mpreal::get_default_prec(), int base = 10, mp_rnd_t mode = mpreal::get_default_rnd());
 
     ~mpreal();                           
 
@@ -205,7 +205,7 @@ public:
     mpreal& operator=(const long int v);
     mpreal& operator=(const int v);
     mpreal& operator=(const char* s);
-    mpreal& operator=(const std::string& s);
+    mpreal& operator=(const string& s);
     template <typename real_t> mpreal& operator= (const std::complex<real_t>& z);
 
     // +
@@ -321,13 +321,13 @@ public:
 
     // Convert mpreal to string with n significant digits in base b
     // n = -1 -> convert with the maximum available digits
-    std::string toString(int n = -1, int b = 10, mp_rnd_t mode = mpreal::get_default_rnd()) const;
+    string toString(int n = -1, int b = 10, mp_rnd_t mode = mpreal::get_default_rnd()) const;
 
 #if (MPFR_VERSION >= MPFR_VERSION_NUM(2,4,0))
-    std::string toString(const std::string& format) const;
+    string toString(const string& format) const;
 #endif
 
-    std::ostream& output(std::ostream& os) const;
+    ::std::ostream& output(::std::ostream& os) const;
 
     // Math Functions
     friend const mpreal sqr (const mpreal& v, mp_rnd_t rnd_mode);
@@ -460,8 +460,8 @@ public:
     friend const mpreal const_infinity(int sign, mp_prec_t prec);
 
     // Output/ Input
-    friend std::ostream& operator<<(std::ostream& os, const mpreal& v);
-    friend std::istream& operator>>(std::istream& is, mpreal& v);
+    friend ::std::ostream& operator<<(::std::ostream& os, const mpreal& v);
+    friend ::std::istream& operator>>(::std::istream& is, mpreal& v);
 
     // Integer Related Functions
     friend const mpreal rint (const mpreal& v, mp_rnd_t rnd_mode);
@@ -564,7 +564,7 @@ private:
 // Exceptions
 class conversion_overflow : public std::exception {
 public:
-    std::string why() { return "inexact conversion from floating point"; }
+    string why() { return "inexact conversion from floating point"; }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -726,7 +726,7 @@ inline mpreal::mpreal(const char* s, mp_prec_t prec, int base, mp_rnd_t mode)
     MPREAL_MSVC_DEBUGVIEW_CODE;
 }
 
-inline mpreal::mpreal(const std::string& s, mp_prec_t prec, int base, mp_rnd_t mode)
+inline mpreal::mpreal(const string& s, mp_prec_t prec, int base, mp_rnd_t mode)
 {
     mpfr_init2  (mpfr_ptr(), prec);
     mpfr_set_str(mpfr_ptr(), s.c_str(), base, mode); 
@@ -1035,7 +1035,7 @@ inline mpreal& mpreal::operator=(const char* s)
     // Use other converters for more precise control on base & precision & rounding:
     //
     //        mpreal(const char* s,        mp_prec_t prec, int base, mp_rnd_t mode)
-    //        mpreal(const std::string& s,mp_prec_t prec, int base, mp_rnd_t mode)
+    //        mpreal(const string& s,mp_prec_t prec, int base, mp_rnd_t mode)
     //
     // Here we assume base = 10 and we use precision of target variable.
 
@@ -1053,12 +1053,12 @@ inline mpreal& mpreal::operator=(const char* s)
     return *this;
 }
 
-inline mpreal& mpreal::operator=(const std::string& s)
+inline mpreal& mpreal::operator=(const string& s)
 {
     // Use other converters for more precise control on base & precision & rounding:
     //
     //        mpreal(const char* s,        mp_prec_t prec, int base, mp_rnd_t mode)
-    //        mpreal(const std::string& s,mp_prec_t prec, int base, mp_rnd_t mode)
+    //        mpreal(const string& s,mp_prec_t prec, int base, mp_rnd_t mode)
     //
     // Here we assume base = 10 and we use precision of target variable.
 
@@ -1734,7 +1734,7 @@ inline ::mpfr_srcptr  mpreal::mpfr_ptr()    const    { return mp; }
 inline ::mpfr_srcptr  mpreal::mpfr_srcptr() const    { return mp; }
 
 template <class T>
-inline std::string toString(T t, std::ios_base & (*f)(std::ios_base&))
+inline string toString(T t, std::ios_base & (*f)(std::ios_base&))
 {
     std::ostringstream oss;
     oss << f << t;
@@ -1743,16 +1743,16 @@ inline std::string toString(T t, std::ios_base & (*f)(std::ios_base&))
 
 #if (MPFR_VERSION >= MPFR_VERSION_NUM(2,4,0))
 
-inline std::string mpreal::toString(const std::string& format) const
+inline string mpreal::toString(const string& format) const
 {
     char *s = NULL;
-    std::string out;
+    string out;
 
     if( !format.empty() )
     {
         if(!(mpfr_asprintf(&s, format.c_str(), mpfr_srcptr()) < 0))
         {
-            out = std::string(s);
+            out = string(s);
 
             mpfr_free_str(s);
         }
@@ -1763,7 +1763,7 @@ inline std::string mpreal::toString(const std::string& format) const
 
 #endif
 
-inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
+inline string mpreal::toString(int n, int b, mp_rnd_t mode) const
 {
     // TODO: Add extended format specification (f, e, rounding mode) as it done in output operator
     (void)b;
@@ -1784,7 +1784,7 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
     char *s, *ns = NULL; 
     size_t slen, nslen;
     mp_exp_t exp;
-    std::string out;
+    string out;
 
     if(mpfr_inf_p(mp))
     { 
@@ -1821,8 +1821,8 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
                 char* ptr = s+slen-1;
                 while (*ptr=='0' && ptr>s+exp) ptr--; 
 
-                if(ptr==s+exp) out = std::string(s,exp+1);
-                else           out = std::string(s,exp+1)+'.'+std::string(s+exp+1,ptr-(s+exp+1)+1);
+                if(ptr==s+exp) out = string(s,exp+1);
+                else           out = string(s,exp+1)+'.'+string(s+exp+1,ptr-(s+exp+1)+1);
 
                 //out = string(s,exp+1)+'.'+string(s+exp+1);
             }
@@ -1832,8 +1832,8 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
                 char* ptr = s+slen-1;
                 while (*ptr=='0' && ptr>s+exp-1) ptr--; 
 
-                if(ptr==s+exp-1) out = std::string(s,exp);
-                else             out = std::string(s,exp)+'.'+std::string(s+exp,ptr-(s+exp)+1);
+                if(ptr==s+exp-1) out = string(s,exp);
+                else             out = string(s,exp)+'.'+string(s+exp,ptr-(s+exp)+1);
 
                 //out = string(s,exp)+'.'+string(s+exp);
             }
@@ -1845,8 +1845,8 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
                 char* ptr = s+slen-1;
                 while (*ptr=='0' && ptr>s+1) ptr--; 
 
-                if(ptr==s+1) out = std::string(s,2);
-                else         out = std::string(s,2)+'.'+std::string(s+2,ptr-(s+2)+1);
+                if(ptr==s+1) out = string(s,2);
+                else         out = string(s,2)+'.'+string(s+2,ptr-(s+2)+1);
 
                 //out = string(s,2)+'.'+string(s+2);
             }
@@ -1856,8 +1856,8 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
                 char* ptr = s+slen-1;
                 while (*ptr=='0' && ptr>s) ptr--; 
 
-                if(ptr==s) out = std::string(s,1);
-                else       out = std::string(s,1)+'.'+std::string(s+1,ptr-(s+1)+1);
+                if(ptr==s) out = string(s,1);
+                else       out = string(s,1)+'.'+string(s+1,ptr-(s+1)+1);
 
                 //out = string(s,1)+'.'+string(s+1);
             }
@@ -1881,7 +1881,7 @@ inline std::string mpreal::toString(int n, int b, mp_rnd_t mode) const
 
 //////////////////////////////////////////////////////////////////////////
 // I/O
-inline std::ostream& mpreal::output(std::ostream& os) const 
+inline ::std::ostream& mpreal::output(::std::ostream& os) const 
 {
     std::ostringstream format;
     const std::ios::fmtflags flags = os.flags();
@@ -1901,21 +1901,21 @@ inline std::ostream& mpreal::output(std::ostream& os) const
                         mpfr_srcptr())
         < 0))
     {
-        os << std::string(s);
+        os << string(s);
         mpfr_free_str(s);
     }
     return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const mpreal& v)
+inline ::std::ostream& operator<<(::std::ostream& os, const mpreal& v)
 {
     return v.output(os);
 }
 
-inline std::istream& operator>>(std::istream &is, mpreal& v)
+inline ::std::istream& operator>>(::std::istream &is, mpreal& v)
 {
     // TODO: use cout::hexfloat and other flags to setup base
-    std::string tmp;
+    string tmp;
     is >> tmp;
     mpfr_set_str(v.mpfr_ptr(), tmp.c_str(), 10, mpreal::get_default_rnd());
     return is;

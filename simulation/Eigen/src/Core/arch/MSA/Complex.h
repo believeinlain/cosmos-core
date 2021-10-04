@@ -92,7 +92,7 @@ struct Packet2cf {
   Packet4f v;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Packet2cf& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet2cf& value) {
   os << "[ (" << value.v[0] << ", " << value.v[1]
      << "i),"
         "  ("
@@ -350,7 +350,7 @@ EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, const Packet2c
   return a / b;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const PacketBlock<Packet2cf, 2>& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const PacketBlock<Packet2cf, 2>& value) {
   os << "[ " << value.packet[0] << ", " << std::endl << "  " << value.packet[1] << " ]";
   return os;
 }
@@ -446,7 +446,7 @@ struct Packet1cd {
   Packet2d v;
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Packet1cd& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const Packet1cd& value) {
   os << "[ (" << value.v[0] << ", " << value.v[1] << "i) ]";
   return os;
 }
@@ -695,7 +695,7 @@ EIGEN_STRONG_INLINE Packet1cd pcplxflip /*<Packet1cd>*/ (const Packet1cd& x) {
   return Packet1cd(preverse(Packet2d(x.v)));
 }
 
-inline std::ostream& operator<<(std::ostream& os, const PacketBlock<Packet1cd, 2>& value) {
+inline ::std::ostream& operator<<(::std::ostream& os, const PacketBlock<Packet1cd, 2>& value) {
   os << "[ " << value.packet[0] << ", " << std::endl << "  " << value.packet[1] << " ]";
   return os;
 }

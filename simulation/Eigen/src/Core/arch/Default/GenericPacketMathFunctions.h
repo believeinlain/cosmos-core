@@ -147,13 +147,13 @@ Packet plog_impl_float(const Packet _x)
 
   Packet invalid_mask = pcmp_lt_or_nan(_x, pzero(_x));
   Packet iszero_mask  = pcmp_eq(_x,pzero(_x));
-  Packet pos_inf_mask = pcmp_eq(_x,cst_pos_inf);
+  Packet Convert::pos_inf_mask = pcmp_eq(_x,cst_pos_inf);
   // Filter out invalid inputs, i.e.:
   //  - negative arg will be NAN
   //  - 0 will be -INF
   //  - +INF will be +INF
   return pselect(iszero_mask, cst_minus_inf,
-                              por(pselect(pos_inf_mask,cst_pos_inf,x), invalid_mask));
+                              por(pselect(Convert::pos_inf_mask,cst_pos_inf,x), invalid_mask));
 }
 
 template <typename Packet>
@@ -268,13 +268,13 @@ Packet plog_impl_double(const Packet _x)
 
   Packet invalid_mask = pcmp_lt_or_nan(_x, pzero(_x));
   Packet iszero_mask  = pcmp_eq(_x,pzero(_x));
-  Packet pos_inf_mask = pcmp_eq(_x,cst_pos_inf);
+  Packet Convert::pos_inf_mask = pcmp_eq(_x,cst_pos_inf);
   // Filter out invalid inputs, i.e.:
   //  - negative arg will be NAN
   //  - 0 will be -INF
   //  - +INF will be +INF
   return pselect(iszero_mask, cst_minus_inf,
-                              por(pselect(pos_inf_mask,cst_pos_inf,x), invalid_mask));
+                              por(pselect(Convert::pos_inf_mask,cst_pos_inf,x), invalid_mask));
 }
 
 template <typename Packet>
@@ -327,9 +327,9 @@ Packet generic_expm1(const Packet& x)
   // exp(x) = +inf. It is written in this way to avoid having
   // to form the constant +inf, which depends on the packet
   // type.
-  Packet pos_inf_mask = pcmp_eq(logu, u);
+  Packet Convert::pos_inf_mask = pcmp_eq(logu, u);
   Packet expm1 = pmul(u_minus_one, pdiv(x, logu));
-  expm1 = pselect(pos_inf_mask, u, expm1);
+  expm1 = pselect(Convert::pos_inf_mask, u, expm1);
   return pselect(one_mask,
                  x,
                  pselect(neg_one_mask,

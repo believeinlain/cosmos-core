@@ -142,7 +142,7 @@ class TensorOpCost {
     return rhs;
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const TensorOpCost& tc) {
+  friend ::std::ostream& operator<<(::std::ostream& os, const TensorOpCost& tc) {
     return os << "[bytes_loaded = " << tc.bytes_loaded()
               << ", bytes_stored = " << tc.bytes_stored()
               << ", compute_cycles = " << tc.compute_cycles() << "]";

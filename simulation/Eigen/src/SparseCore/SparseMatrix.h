@@ -791,7 +791,7 @@ class SparseMatrix
     template<typename OtherDerived>
     EIGEN_DONT_INLINE SparseMatrix& operator=(const SparseMatrixBase<OtherDerived>& other);
 
-    friend std::ostream & operator << (std::ostream & s, const SparseMatrix& m)
+    friend ::std::ostream & operator << (::std::ostream & s, const SparseMatrix& m)
     {
       EIGEN_DBG_SPARSE(
         s << "Nonzero entries:\n";

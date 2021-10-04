@@ -116,7 +116,7 @@ class AutoDiffScalar
       : m_value(other.value()), m_derivatives(other.derivatives())
     {}
 
-    friend  std::ostream & operator << (std::ostream & s, const AutoDiffScalar& a)
+    friend  ::std::ostream & operator << (::std::ostream & s, const AutoDiffScalar& a)
     {
       return s << a.value();
     }

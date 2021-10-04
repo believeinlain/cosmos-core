@@ -134,8 +134,8 @@ struct generic_xpr_base<Derived, MatrixXpr, Sparse>
   typedef SparseMatrixBase<Derived> type;
 };
 
-struct SparseTriangularShape  { static std::string debugName() { return "SparseTriangularShape"; } };
-struct SparseSelfAdjointShape { static std::string debugName() { return "SparseSelfAdjointShape"; } };
+struct SparseTriangularShape  { static string debugName() { return "SparseTriangularShape"; } };
+struct SparseSelfAdjointShape { static string debugName() { return "SparseSelfAdjointShape"; } };
 
 template<> struct glue_shapes<SparseShape,SelfAdjointShape> { typedef SparseSelfAdjointShape type;  };
 template<> struct glue_shapes<SparseShape,TriangularShape > { typedef SparseTriangularShape  type;  };

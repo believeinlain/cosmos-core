@@ -56,7 +56,7 @@
     EIGEN_TRY {X;} \
     EIGEN_CATCH(const cl::sycl::exception& e) { \
       EIGEN_THROW_X(std::runtime_error("SYCL exception at " + \
-                                       std::string(__FILE__) + ":" + \
+                                       string(__FILE__) + ":" + \
                                        std::to_string(__LINE__) + "\n" + \
                                        e.what())); \
     } \

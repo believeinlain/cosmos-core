@@ -47,7 +47,7 @@ class MatrixMarketIterator
     typedef SparseMatrix<Scalar,ColMajor> MatrixType; 
   
   public:
-    MatrixMarketIterator(const std::string &folder)
+    MatrixMarketIterator(const string &folder)
       : m_sym(0), m_isvalid(false), m_matIsLoaded(false), m_hasRhs(false), m_hasrefX(false), m_folder(folder)
     {
       m_folder_id = opendir(folder.c_str());
@@ -76,7 +76,7 @@ class MatrixMarketIterator
       // Read the matrix
       if (m_matIsLoaded) return m_mat;
       
-      std::string matrix_file = m_folder + "/" + m_matname + ".mtx";
+      string matrix_file = m_folder + "/" + m_matname + ".mtx";
       if ( !loadMarket(m_mat, matrix_file)) 
       {
         std::cerr << "Warning loadMarket failed when loading \"" << matrix_file << "\"" << std::endl;
@@ -115,7 +115,7 @@ class MatrixMarketIterator
        // Get the right hand side
       if (m_hasRhs) return m_rhs;
       
-      std::string rhs_file;
+      string rhs_file;
       rhs_file = m_folder + "/" + m_matname + "_b.mtx"; // The pattern is matname_b.mtx
       m_hasRhs = Fileexists(rhs_file);
       if (m_hasRhs)
@@ -147,7 +147,7 @@ class MatrixMarketIterator
       // Check if a reference solution is provided
       if (m_hasrefX) return m_refX;
       
-      std::string lhs_file;
+      string lhs_file;
       lhs_file = m_folder + "/" + m_matname + "_x.mtx"; 
       m_hasrefX = Fileexists(lhs_file);
       if (m_hasrefX)
@@ -160,7 +160,7 @@ class MatrixMarketIterator
       return m_refX; 
     }
     
-    inline std::string& matname() { return m_matname; }
+    inline string& matname() { return m_matname; }
     
     inline int sym() { return m_sym; }
     
@@ -170,7 +170,7 @@ class MatrixMarketIterator
     
   protected:
     
-    inline bool Fileexists(std::string file)
+    inline bool Fileexists(string file)
     {
       std::ifstream file_id(file.c_str());
       if (!file_id.good() ) 
@@ -190,7 +190,7 @@ class MatrixMarketIterator
       // Here, we return with the next valid matrix in the folder
       while ( (m_curs_id = readdir(m_folder_id)) != NULL) {
         m_isvalid = false;
-        std::string curfile;
+        string curfile;
         curfile = m_folder + "/" + m_curs_id->d_name;
         // Discard if it is a folder
         if (m_curs_id->d_type == DT_DIR) continue; //FIXME This may not be available on non BSD systems
@@ -215,12 +215,12 @@ class MatrixMarketIterator
         
         
         // Get the matrix name
-        std::string filename = m_curs_id->d_name;
+        string filename = m_curs_id->d_name;
         m_matname = filename.substr(0, filename.length()-4); 
         
         // Find if the matrix is SPD 
         size_t found = m_matname.find("SPD");
-        if( (found!=std::string::npos) && (m_sym != NonSymmetric) )
+        if( (found!=string::npos) && (m_sym != NonSymmetric) )
           m_sym = SPD;
        
         m_isvalid = true;
@@ -231,12 +231,12 @@ class MatrixMarketIterator
     MatrixType m_mat; // Current matrix  
     VectorType m_rhs;  // Current vector
     VectorType m_refX; // The reference solution, if exists
-    std::string m_matname; // Matrix Name
+    string m_matname; // Matrix Name
     bool m_isvalid; 
     bool m_matIsLoaded; // Determine if the matrix has already been loaded from the file
     bool m_hasRhs; // The right hand side exists
     bool m_hasrefX; // A reference solution is provided
-    std::string m_folder;
+    string m_folder;
     DIR * m_folder_id;
     struct dirent *m_curs_id; 
     

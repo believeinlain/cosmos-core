@@ -233,7 +233,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
       ComplexScalar* a = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * good_composite);
       ComplexScalar* b = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * good_composite);
-      ComplexScalar* pos_j_base_powered = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * (line_len + 1));
+      ComplexScalar* Convert::pos_j_base_powered = is_power_of_two ? NULL : (ComplexScalar*)m_device.allocate(sizeof(ComplexScalar) * (line_len + 1));
       if (!is_power_of_two) {
         // Compute twiddle factors
         //   t_n = exp(sqrt(-1) * pi * n^2 / line_len)
@@ -244,18 +244,18 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         // numerical issues for large transforms, especially in
         // single-precision floating point.
         //
-        // pos_j_base_powered[0] = ComplexScalar(1, 0);
+        // Convert::pos_j_base_powered[0] = ComplexScalar(1, 0);
         // if (line_len > 1) {
-        //   const ComplexScalar pos_j_base = ComplexScalar(
+        //   const ComplexScalar Convert::pos_j_base = ComplexScalar(
         //       numext::cos(M_PI / line_len), numext::sin(M_PI / line_len));
-        //   pos_j_base_powered[1] = pos_j_base;
+        //   Convert::pos_j_base_powered[1] = Convert::pos_j_base;
         //   if (line_len > 2) {
-        //     const ComplexScalar pos_j_base_sq = pos_j_base * pos_j_base;
+        //     const ComplexScalar Convert::pos_j_base_sq = Convert::pos_j_base * Convert::pos_j_base;
         //     for (int i = 2; i < line_len + 1; ++i) {
-        //       pos_j_base_powered[i] = pos_j_base_powered[i - 1] *
-        //           pos_j_base_powered[i - 1] /
-        //           pos_j_base_powered[i - 2] *
-        //           pos_j_base_sq;
+        //       Convert::pos_j_base_powered[i] = Convert::pos_j_base_powered[i - 1] *
+        //           Convert::pos_j_base_powered[i - 1] /
+        //           Convert::pos_j_base_powered[i - 2] *
+        //           Convert::pos_j_base_sq;
         //     }
         //   }
         // }
@@ -264,7 +264,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
         for (int j = 0; j < line_len + 1; ++j) {
           double arg = ((EIGEN_PI * j) * j) / line_len;
           std::complex<double> tmp(numext::cos(arg), numext::sin(arg));
-          pos_j_base_powered[j] = static_cast<ComplexScalar>(tmp);
+          Convert::pos_j_base_powered[j] = static_cast<ComplexScalar>(tmp);
         }
       }
 
@@ -287,7 +287,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
           processDataLineCooleyTukey(line_buf, line_len, log_len);
         }
         else {
-          processDataLineBluestein(line_buf, line_len, good_composite, log_len, a, b, pos_j_base_powered);
+          processDataLineBluestein(line_buf, line_len, good_composite, log_len, a, b, Convert::pos_j_base_powered);
         }
 
         // write back
@@ -305,7 +305,7 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
       if (!is_power_of_two) {
         m_device.deallocate(a);
         m_device.deallocate(b);
-        m_device.deallocate(pos_j_base_powered);
+        m_device.deallocate(Convert::pos_j_base_powered);
       }
     }
 
@@ -343,17 +343,17 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
   }
 
   // Call Bluestein's FFT algorithm, m is a good composite number greater than (2 * n - 1), used as the padding length
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineBluestein(ComplexScalar* line_buf, Index line_len, Index good_composite, Index log_len, ComplexScalar* a, ComplexScalar* b, const ComplexScalar* pos_j_base_powered) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void processDataLineBluestein(ComplexScalar* line_buf, Index line_len, Index good_composite, Index log_len, ComplexScalar* a, ComplexScalar* b, const ComplexScalar* Convert::pos_j_base_powered) {
     Index n = line_len;
     Index m = good_composite;
     ComplexScalar* data = line_buf;
 
     for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        a[i] = data[i] * numext::conj(pos_j_base_powered[i]);
+        a[i] = data[i] * numext::conj(Convert::pos_j_base_powered[i]);
       }
       else {
-        a[i] = data[i] * pos_j_base_powered[i];
+        a[i] = data[i] * Convert::pos_j_base_powered[i];
       }
     }
     for (Index i = n; i < m; ++i) {
@@ -362,10 +362,10 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
     for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        b[i] = pos_j_base_powered[i];
+        b[i] = Convert::pos_j_base_powered[i];
       }
       else {
-        b[i] = numext::conj(pos_j_base_powered[i]);
+        b[i] = numext::conj(Convert::pos_j_base_powered[i]);
       }
     }
     for (Index i = n; i < m - n; ++i) {
@@ -373,10 +373,10 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
     }
     for (Index i = m - n; i < m; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        b[i] = pos_j_base_powered[m-i];
+        b[i] = Convert::pos_j_base_powered[m-i];
       }
       else {
-        b[i] = numext::conj(pos_j_base_powered[m-i]);
+        b[i] = numext::conj(Convert::pos_j_base_powered[m-i]);
       }
     }
 
@@ -400,10 +400,10 @@ struct TensorEvaluator<const TensorFFTOp<FFT, ArgType, FFTResultType, FFTDir>, D
 
     for (Index i = 0; i < n; ++i) {
       if(FFTDir == FFT_FORWARD) {
-        data[i] = a[i] * numext::conj(pos_j_base_powered[i]);
+        data[i] = a[i] * numext::conj(Convert::pos_j_base_powered[i]);
       }
       else {
-        data[i] = a[i] * pos_j_base_powered[i];
+        data[i] = a[i] * Convert::pos_j_base_powered[i];
       }
     }
   }

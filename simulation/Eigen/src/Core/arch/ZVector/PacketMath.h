@@ -244,7 +244,7 @@ template<> struct unpacket_traits<Packet2d> { typedef double type; enum {size=2,
 /* Forward declaration */
 EIGEN_DEVICE_FUNC inline void ptranspose(PacketBlock<Packet4f,4>& kernel);
  
-inline std::ostream & operator <<(std::ostream & s, const Packet4i & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4i & v)
 {
   Packet vt;
   vt.v4i = v;
@@ -252,7 +252,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4i & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4ui & v)
 {
   Packet vt;
   vt.v4ui = v;
@@ -260,7 +260,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet4ui & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet2l & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet2l & v)
 {
   Packet vt;
   vt.v2l = v;
@@ -268,7 +268,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2l & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet2ul & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet2ul & v)
 {
   Packet vt;
   vt.v2ul = v;
@@ -276,7 +276,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2ul & v)
   return s;
 }
 
-inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet2d & v)
 {
   Packet vt;
   vt.v2d = v;
@@ -285,7 +285,7 @@ inline std::ostream & operator <<(std::ostream & s, const Packet2d & v)
 }
 
 #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
-inline std::ostream & operator <<(std::ostream & s, const Packet4f & v)
+inline ::std::ostream & operator <<(::std::ostream & s, const Packet4f & v)
 {
   Packet vt;
   vt.v4f = v;

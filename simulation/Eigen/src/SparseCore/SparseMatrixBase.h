@@ -215,7 +215,7 @@ template<typename Derived> class SparseMatrixBase
 
   public:
 
-    friend std::ostream & operator << (std::ostream & s, const SparseMatrixBase& m)
+    friend ::std::ostream & operator << (::std::ostream & s, const SparseMatrixBase& m)
     {
       typedef typename Derived::Nested Nested;
       typedef typename internal::remove_all<Nested>::type NestedCleaned;
