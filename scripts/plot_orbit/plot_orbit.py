@@ -15,14 +15,15 @@ from astropy.time import Time
 
 # File names for the satellite and target data
 satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
+#satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat', 'eci_orbit_yellowflash.dat']
 target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+
 
 # Load data from all files
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
 
 # Downsample the data for the animation
-#step = 60  # Adjust the step size to downsample data
-step = 10 # Adjust the step size to downsample data
+step = 30  # Adjust the step size to downsample data
 data_sets = [data[::step] for data in data_sets]
 
 # Length of the tail in seconds
@@ -80,7 +81,7 @@ ax_slider = plt.axes([0.1, 0.05, 0.8, 0.03])  # Position of the slider
 frame_slider = Slider(ax_slider, 'Frame', 0, len(data_sets[0]) - 1, valinit=0, valfmt='%0.0f')
 
 # Text display for ISO time
-iso_time_display = ax.text2D(0.5, 0.95, "", transform=ax.transAxes, ha='center')
+iso_time_display = ax.text2D(0.5, 0.98, "", transform=ax.transAxes, ha='center')
 
 
 # Function to toggle Earth visibility
@@ -121,10 +122,6 @@ frame_slider.on_changed(update)
 
 # Global variable to track paused state
 paused = False
-
-
-
-
 def toggle_pause(event):
     global paused
     if event.key == " ":  # Spacebar pressed
