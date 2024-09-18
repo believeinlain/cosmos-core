@@ -14,15 +14,32 @@ from astropy.time import Time
 
 
 # File names for the satellite and target data
-satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
-target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+#satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
+#target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
 
+#satellite_files = ['../../build/newdat/eci_orbit_sat1.dat', '../../build/newdat/eci_orbit_sat2.dat', '../../build/newdat/eci_orbit_sat3.dat', '../../build/newdat/eci_orbit_sat4.dat', '../../build/newdat/eci_orbit_sat5.dat']
+satellite_files = [
+	'../../build/newdat/mothership.dat',
+	'../../build/newdat/childsat1.dat',
+	'../../build/newdat/childsat2.dat',
+	'../../build/newdat/childsat3.dat',
+	'../../build/newdat/childsat4.dat',
+]
+
+target_files = [
+	'../../build/newdat/eci_target1.dat',
+	'../../build/newdat/eci_target2.dat',
+	'../../build/newdat/eci_target3.dat',
+	'../../build/newdat/eci_target4.dat',
+	'../../build/newdat/eci_target5.dat',
+	'../../build/newdat/eci_target6.dat'
+]
 
 # Load data from all files
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
 
 # Downsample the data for the animation
-step = 30  # Adjust the step size to downsample data
+step = 8  # Adjust the step size to downsample data
 data_sets = [data[::step] for data in data_sets]
 
 # Length of the tail in seconds
@@ -154,7 +171,7 @@ connections = [ax.plot([], [], [], lw=1, color='black', linestyle='--')[0] for _
 # Initialize the lines, markers, and connections for each satellite and target pair
 for i in range(len(data_sets)):
     line, = ax.plot([], [], [], lw=0.5, color=colors[i % len(colors)])  # Thin trace line
-    marker, = ax.plot([], [], [], 'o', color=colors[(i+1) % len(colors)])  # Satellite marker
+    marker, = ax.plot([], [], [], 'o', color=colors[i % len(colors)], lw=1)  # Satellite marker
     lines.append(line)
     satellite_markers.append(marker)
     if i < num_actual_sats:  # Only create connections for satellites to targets
@@ -173,6 +190,8 @@ def init():
     return lines + satellite_markers + connections
 
 def animate(i):
+    if i == len(data_sets[0])-1:
+        return lines + satellite_markers + connections
     global should_animate, paused
     if paused:  # If paused, do not update the animation
         return lines + satellite_markers + connections
@@ -185,8 +204,8 @@ def animate(i):
         x, y, z = data[:, 0], data[:, 1], data[:, 2]
         start_idx = max(0, i - tail_length // step)  # Determine the start of the tail
         # Update trace
-        line.set_data(x[start_idx:i], y[start_idx:i])
-        line.set_3d_properties(z[start_idx:i])
+        line.set_data(x[start_idx:i+1], y[start_idx:i+1])
+        line.set_3d_properties(z[start_idx:i+1])
         # Update satellite marker
         marker.set_data(x[i:i+1], y[i:i+1])
         marker.set_3d_properties(z[i:i+1])
