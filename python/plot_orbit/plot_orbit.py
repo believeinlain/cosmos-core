@@ -19,20 +19,20 @@ from astropy.time import Time
 
 #satellite_files = ['../../build/newdat/eci_orbit_sat1.dat', '../../build/newdat/eci_orbit_sat2.dat', '../../build/newdat/eci_orbit_sat3.dat', '../../build/newdat/eci_orbit_sat4.dat', '../../build/newdat/eci_orbit_sat5.dat']
 satellite_files = [
-	'../../build/newdat/mothership.dat',
-	'../../build/newdat/childsat1.dat',
-	'../../build/newdat/childsat2.dat',
-	'../../build/newdat/childsat3.dat',
-	'../../build/newdat/childsat4.dat',
+	'./eci_orbit_sat1.dat',
+	'./eci_orbit_sat2.dat',
+	'./eci_orbit_sat3.dat',
+	'./eci_orbit_sat4.dat',
+	'./eci_orbit_sat5.dat',
 ]
 
 target_files = [
-	'../../build/newdat/eci_target1.dat',
-	'../../build/newdat/eci_target2.dat',
-	'../../build/newdat/eci_target3.dat',
-	'../../build/newdat/eci_target4.dat',
-	'../../build/newdat/eci_target5.dat',
-	'../../build/newdat/eci_target6.dat'
+	'./eci_target1.dat',
+	'./eci_target2.dat',
+	'./eci_target3.dat',
+	'./eci_target4.dat',
+	'./eci_target5.dat',
+	'./eci_target6.dat'
 ]
 
 # Load data from all files
