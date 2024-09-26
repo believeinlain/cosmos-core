@@ -2,6 +2,8 @@
 
 ## script to visualize satellite orbit and target trajectory data
 
+import matplotlib
+matplotlib.use('TkAgg')
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -14,26 +16,26 @@ from astropy.time import Time
 
 
 # File names for the satellite and target data
-#satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
-#target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
+satellite_files = ['eci_orbit_sat1.dat', 'eci_orbit_sat2.dat', 'eci_orbit_sat3.dat', 'eci_orbit_sat4.dat', 'eci_orbit_sat5.dat']
+target_files = ['eci_target1.dat', 'eci_target2.dat', 'eci_target3.dat', 'eci_target4.dat', 'eci_target5.dat', 'eci_target6.dat']
 
 #satellite_files = ['../../build/newdat/eci_orbit_sat1.dat', '../../build/newdat/eci_orbit_sat2.dat', '../../build/newdat/eci_orbit_sat3.dat', '../../build/newdat/eci_orbit_sat4.dat', '../../build/newdat/eci_orbit_sat5.dat']
-satellite_files = [
-	'../../build/newdat/mothership.dat',
-	'../../build/newdat/childsat1.dat',
-	'../../build/newdat/childsat2.dat',
-	'../../build/newdat/childsat3.dat',
-	'../../build/newdat/childsat4.dat',
-]
+#satellite_files = [
+#	'../../build/newdat/mothership.dat',
+#	'../../build/newdat/childsat1.dat',
+#	'../../build/newdat/childsat2.dat',
+#	'../../build/newdat/childsat3.dat',
+#	'../../build/newdat/childsat4.dat',
+#]
 
-target_files = [
-	'../../build/newdat/eci_target1.dat',
-	'../../build/newdat/eci_target2.dat',
-	'../../build/newdat/eci_target3.dat',
-	'../../build/newdat/eci_target4.dat',
-	'../../build/newdat/eci_target5.dat',
-	'../../build/newdat/eci_target6.dat'
-]
+#target_files = [
+#	'../../build/newdat/eci_target1.dat',
+#	'../../build/newdat/eci_target2.dat',
+#	'../../build/newdat/eci_target3.dat',
+#	'../../build/newdat/eci_target4.dat',
+#	'../../build/newdat/eci_target5.dat',
+#	'../../build/newdat/eci_target6.dat'
+#]
 
 # Load data from all files
 data_sets = [np.loadtxt(file, delimiter=',') for file in satellite_files + target_files]
